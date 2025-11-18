@@ -1,0 +1,2547 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>AppSec Dashboards — Program & Risk (EverythingUX Mockup)</title>
+
+    <!-- Typography (EverythingUX uses Roboto with sentence case) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* ===== Base tokens (subset aligned to EverythingUX) ===== */
+            --color-primary: #0073e7;
+
+            /* Neutrals */
+            --gray-05: #fafafa;
+            --gray-10: #f1f2f3;
+            --gray-20: #e8eaeb;
+            --gray-30: #cfd0d1;
+            --gray-40: #bdbec0;
+            --gray-50: #a3a5a8;
+            --gray-60: #8a8d8f;
+            --gray-70: #747577;
+            --gray-80: #4c4e50;
+            --gray-90: #323435;
+            --gray-95: #1c1d1e;
+
+            /* Status */
+            --status-success: #1aa364;
+            --status-warning: #ffc002;
+            --status-error: #e5004c;
+            --status-info: #0064ca;
+
+            /* Elevations (shadows) */
+            --elev-1: 0 2px 6px rgba(0, 0, 0, 0.06);
+            --elev-2: 0 2px 4px rgba(0, 0, 0, 0.10);
+            --elev-3: 0 6px 10px rgba(0, 0, 0, 0.10);
+            --elev-4: 0 12px 24px rgba(0, 0, 0, 0.12);
+
+            /* Radii */
+            --radius-sm: 2px;
+            --radius-md: 4px;
+            --radius-lg: 8px;
+
+            /* Spacing (8‑pt scale) */
+            --space-4: 4px;
+            --space-8: 8px;
+            --space-12: 12px;
+            --space-16: 16px;
+            --space-24: 24px;
+            --space-32: 32px;
+            --space-40: 40px;
+
+            /* Content grid */
+            --content-width: 1376px;
+            --gutter: 24px;
+
+            /* Program: scan-type palette */
+            --c-sast: #3B82F6;
+            --c-dast: #F59E0B;
+            --c-sca: #10B981;
+            --c-other: #9CA3AF;
+
+            /* Risk: severity palette */
+            --sev-critical: #e5004c;
+            --sev-high: #F59E0B;
+            --sev-medium: #FFC002;
+            --sev-low: #FDE68A;
+
+            /* Compliance: policy status */
+            --compliance-pass: #1aa364;
+            --compliance-fail: #e5004c;
+            --compliance-unassessed: #bdbec0;
+        }
+
+        /* ===== Theme roles ===== */
+        html[data-theme="light"] {
+            --bg-canvas: var(--gray-10);
+            --bg-surface: #ffffff;
+            --border: var(--gray-20);
+            --text: var(--gray-90);
+            --text-muted: var(--gray-70);
+            --track: var(--gray-20);
+            --gridline: var(--gray-20);
+            --shadow: var(--elev-1);
+        }
+
+        html[data-theme="dark"] {
+            --bg-canvas: var(--gray-95);
+            --bg-surface: var(--gray-90);
+            --border: var(--gray-80);
+            --text: var(--gray-10);
+            --text-muted: var(--gray-50);
+            --track: var(--gray-80);
+            --gridline: var(--gray-80);
+            --shadow: var(--elev-2);
+        }
+
+        /* ===== Base ===== */
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            background: var(--bg-canvas);
+            color: var(--text);
+            font-family: Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+        }
+
+        .wrap {
+            max-width: calc(var(--content-width) + 64px);
+            margin: 0 auto;
+            padding: 24px 32px 64px;
+        }
+
+        /* Masthead + Nav */
+        .masthead {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .masthead h1 {
+            font-size: 24px;
+            line-height: 32px;
+            margin: 0;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav button {
+            appearance: none;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 16px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font: 500 14px/20px Roboto, sans-serif;
+        }
+
+        .nav button.active {
+            background: var(--color-primary);
+            color: #fff;
+            border-color: var(--color-primary);
+        }
+
+        .toggle {
+            appearance: none;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 20px;
+            padding: 8px 12px;
+            font: 500 14px/20px Roboto, sans-serif;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        .toggle:focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
+        /* Theme toggle switch */
+        .theme-toggle {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+        }
+
+        .theme-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .theme-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border);
+            transition: 0.3s;
+            border-radius: 28px;
+            border: 1px solid var(--border);
+        }
+
+        .theme-slider:before {
+            position: absolute;
+            content: "☀️";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .theme-toggle input:checked+.theme-slider {
+            background-color: var(--color-primary);
+        }
+
+        .theme-toggle input:checked+.theme-slider:before {
+            transform: translateX(24px);
+            content: "🌙";
+        }
+
+        .theme-toggle input:focus-visible+.theme-slider {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
+        .nav-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* Pages */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-column-gap: var(--gutter);
+        }
+
+        .row {
+            margin-bottom: 24px;
+        }
+
+        .col-4 {
+            grid-column: span 4;
+        }
+
+        .col-6 {
+            grid-column: span 6;
+        }
+
+        .col-8 {
+            grid-column: span 8;
+        }
+
+        .col-12 {
+            grid-column: span 12;
+        }
+
+        /* Card */
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            padding: 16px;
+        }
+
+        .card h3 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            line-height: 24px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .kpi {
+            font-size: 32px;
+            line-height: 40px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* KPI with inline delta (YoY next to value) */
+        .kpi-inline {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .muted {
+            color: var(--text-muted);
+        }
+
+        /* Donut (coverage/compliance/dep risk) */
+        .donut-wrap {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .donut {
+            --pct: 72;
+            --ring-color: var(--color-primary);
+            width: 120px;
+            height: 120px;
+            background: conic-gradient(var(--ring-color) calc(var(--pct)*1%), var(--track) 0);
+            -webkit-mask: radial-gradient(closest-side, transparent 68%, black 70%);
+            mask: radial-gradient(closest-side, transparent 68%, black 70%);
+            border-radius: 50%;
+        }
+
+
+        /* KPI deltas (YoY) */
+        .kpi-row {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .delta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            line-height: 16px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .delta i {
+            font-style: normal;
+        }
+
+        .delta.positive {
+            color: var(--status-success);
+            border-color: var(--status-success);
+        }
+
+        .delta.negative {
+            color: var(--status-error);
+            border-color: var(--status-error);
+        }
+
+        .delta.neutral {
+            color: var(--text-muted);
+            border-color: var(--gridline);
+        }
+
+        /* Trend (stacked 12 bars) */
+        .trend {
+            height: 200px;
+            display: flex;
+            align-items: flex-end;
+            gap: 24px;
+            padding: 8px 16px 0 16px;
+            border-top: 1px solid var(--gridline);
+        }
+
+        /* Grouped bar chart container */
+        .trend-grouped {
+            display: flex;
+            height: 280px;
+            padding: 16px 0 40px 60px;
+            position: relative;
+        }
+
+        .trend-grouped .chart-area {
+            flex: 1;
+            display: flex;
+            align-items: flex-end;
+            gap: 16px;
+            border-left: 2px solid var(--border);
+            border-bottom: 2px solid var(--border);
+            padding: 0 16px 0 16px;
+            position: relative;
+        }
+
+        .trend-grouped .y-axis {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 40px;
+            width: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: right;
+            padding-right: 8px;
+        }
+
+        .trend-grouped .y-axis-label {
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-90deg);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        .trend-grouped .x-axis {
+            position: absolute;
+            bottom: 0;
+            left: 60px;
+            right: 0;
+            height: 40px;
+            display: flex;
+            align-items: flex-start;
+            padding-top: 8px;
+        }
+
+        .trend-grouped .x-axis .month-label {
+            flex: 1;
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .trend-grouped .month-group {
+            flex: 1;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 3px;
+            padding: 0 4px;
+        }
+
+        .trend-grouped .grouped-bar {
+            width: 12px;
+            border-radius: 2px 2px 0 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .trend-grouped .grouped-bar:hover {
+            opacity: 0.8;
+        }
+
+        .bar {
+            width: 28px;
+            display: flex;
+            flex-direction: column-reverse;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .seg {
+            width: 100%;
+        }
+
+        /* Legend */
+        .legend,
+        .legend-coverage {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .sw {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .sw i {
+            width: 10px;
+            height: 10px;
+            display: inline-block;
+            border-radius: 2px;
+        }
+
+        /* Treemap (simple) */
+        .treemap {
+            display: flex;
+            height: 160px;
+            gap: 2px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .tree-seg {
+            height: 100%;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        thead th {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-align: left;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--gridline);
+        }
+
+        tbody td {
+            font-size: 14px;
+            color: var(--text);
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--gridline);
+        }
+
+        .warn {
+            color: var(--status-error);
+            font-weight: 600;
+        }
+
+        /* Horizontal bars (ratings/coverage rows) */
+        .hbars {
+            display: grid;
+            grid-template-columns: 60px 1fr 80px;
+            row-gap: 12px;
+            column-gap: 16px;
+            margin-top: 8px;
+        }
+
+        .hlabel {
+            font-size: 14px;
+            color: var(--text-muted);
+            align-self: center;
+        }
+
+        .hbar {
+            --pct: 0;
+            --fill-color: var(--color-primary);
+            height: 16px;
+            width: 100%;
+            background: var(--track);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hbar>.fill {
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: calc(var(--pct)*1%);
+            background: var(--fill-color);
+        }
+
+        .hmeta {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: right;
+            align-self: center;
+        }
+
+        /* Matrix (age x severity) */
+        .matrix {
+            display: grid;
+            grid-template-columns: 120px repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+            max-height: 320px;
+            min-height: 240px;
+            align-items: stretch;
+        }
+
+        .mx-h {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .mx-rowlabel {
+            font-size: 14px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+        }
+
+        .mx-cell {
+            min-height: 40px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--text);
+            flex-grow: 1;
+        }
+
+        /* color-mix gives a nice tinted cell; harmless if unsupported */
+        .mx-cell.crit {
+            background: color-mix(in srgb, var(--sev-critical) 15%, transparent);
+        }
+
+        .mx-cell.high {
+            background: color-mix(in srgb, var(--sev-high) 15%, transparent);
+        }
+
+        .mx-cell.med {
+            background: color-mix(in srgb, var(--sev-medium) 18%, transparent);
+        }
+
+        .mx-cell.low {
+            background: color-mix(in srgb, var(--sev-low) 22%, transparent);
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg-surface);
+            color: var(--text-muted);
+        }
+
+        @media (max-width:1280px) {
+            .grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+
+            .col-4,
+            .col-6,
+            .col-8,
+            .col-12 {
+                grid-column: span 6;
+            }
+        }
+
+        @media (max-width:768px) {
+            .wrap {
+                padding: 16px;
+            }
+        }
+
+        /* OpenText Product Masthead */
+        .ot-masthead {
+            height: 48px;
+            background: linear-gradient(90deg, #19224A 0%, #222E61 25%, #23346A 65%, #146693 90%, #088CB2 100%);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            gap: 8px;
+        }
+
+        [data-theme="dark"] .ot-masthead {
+            background: linear-gradient(90deg, #303A60 0%, #2C3661 25%, #394780 65%, #146693 90%, #088CB2 100%);
+        }
+
+        .ot-logo {
+            width: 95px;
+            height: 18px;
+        }
+
+        .ot-divider {
+            width: 1px;
+            height: 18px;
+            background: #FFFFFF;
+            margin: 0 8px 0 0;
+        }
+
+        .ot-product-name {
+            font-family: Roboto, sans-serif;
+            font-size: 18px;
+            font-weight: 400;
+            color: #FFFFFF;
+            line-height: 18px;
+        }
+
+        /* Filter Panel Styles */
+        .filter-toggle-btn {
+            position: relative;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            margin-bottom: 16px;
+        }
+
+        .filter-toggle-btn:hover {
+            background: var(--bg-canvas);
+            border-color: var(--accent);
+        }
+
+        .filter-toggle-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--text);
+        }
+
+        .filter-badge {
+            background: var(--accent);
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .filter-panel {
+            display: none;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .filter-panel.open {
+            display: block;
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .filter-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .filter-btn {
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            background: var(--bg-canvas);
+        }
+
+        .filter-btn.primary {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .filter-btn.primary:hover {
+            opacity: 0.9;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .filter-group-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 4px 0;
+        }
+
+        .filter-option input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+            appearance: none;
+            background: var(--bg-surface);
+            transition: all 0.2s ease;
+        }
+
+        .filter-option input[type="checkbox"]:checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .filter-option input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .filter-option label {
+            font-size: 14px;
+            color: var(--text);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .filter-option:hover label {
+            color: var(--accent);
+        }
+
+        /* Remove dark theme override since we're using proper theme variables now */
+
+        /* Active Filter Tags */
+        .filter-tags-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .filter-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent);
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 6px 10px;
+            border-radius: 16px;
+            white-space: nowrap;
+            animation: slideIn 0.2s ease;
+        }
+
+        /* Ensure tags are readable in light mode */
+        html[data-theme="light"] .filter-tag {
+            background: var(--gray-80);
+            color: white;
+        }
+
+        html[data-theme="dark"] .filter-tag {
+            background: var(--accent);
+            color: white;
+        }
+
+        .filter-tag-close {
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+            font-weight: bold;
+        }
+
+        .filter-tag-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- OpenText Product Masthead -->
+    <div class="ot-masthead">
+        <svg class="ot-logo" width="95" height="18" viewBox="0 0 95 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g clip-path="url(#clip0_3195_418902)">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M12.5776 8.5218C12.5776 11.4213 10.8536 14.5559 6.30839 14.5559C3.01705 14.5559 0 12.7535 0 8.5218C0 5.03455 2.27259 2.33096 6.7394 2.56605C11.5197 2.84033 12.5776 6.44512 12.5776 8.5218ZM4.07498 6.32757C3.64398 6.95449 3.48725 7.73814 3.48725 8.5218C3.48725 10.285 4.38844 11.8915 6.30839 11.8915C8.18915 11.8915 9.09035 10.4026 9.09035 8.67853C9.09035 7.42468 8.77689 6.4843 8.11078 5.89657C7.4055 5.26965 6.58267 5.23046 6.07329 5.26965C5.13291 5.30883 4.54517 5.62229 4.07498 6.32757Z" fill="white"/>
+                <path d="M43.4158 3.69692C43.6831 3.41945 43.9055 3.18866 44.433 2.95788C44.9815 2.72278 45.726 2.56605 46.588 2.56605C47.2933 2.56605 48.077 2.6836 48.6647 2.99706C49.8794 3.62398 50.232 4.64273 50.232 6.44512V14.2816H46.7448V7.81651C46.7448 6.79776 46.7056 6.40594 46.588 6.09248C46.3138 5.46556 45.726 5.23046 45.0207 5.23046C43.2183 5.23046 43.2183 6.64103 43.2183 8.09079V14.2816H39.7703V2.84033H43.2575V3.85907C43.3134 3.80318 43.3654 3.74918 43.4158 3.69692Z" fill="white"/>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M38.1246 11.3038C38.113 11.3283 38.1005 11.3555 38.0869 11.3851C37.7313 12.1571 36.6262 14.5559 32.2864 14.5559C28.7992 14.5559 26.3698 12.4792 26.3698 8.71771C26.3698 5.97493 27.7804 2.56605 32.404 2.56605C32.4338 2.56605 32.466 2.56591 32.5003 2.56576C33.2776 2.56237 35.1723 2.55409 36.6357 4.05499C38.1638 5.66147 38.2422 7.89488 38.2813 9.1879H29.8571C29.8571 10.5985 30.6799 12.0482 32.5607 12.0482C34.4395 12.0482 35.1062 10.8361 35.5372 10.0524L35.5386 10.0499L38.1246 11.3038ZM34.6613 6.97902C34.5863 6.517 34.4871 5.90552 34.0104 5.46556C33.5794 5.03455 32.9133 4.83864 32.3256 4.83864C31.5028 4.83864 30.915 5.23046 30.5624 5.58311C30.0922 6.09248 29.9746 6.60185 29.8571 7.11122L34.6765 7.07204C34.6715 7.04194 34.6664 7.01062 34.6613 6.97902Z" fill="white"/>
+                <path d="M86.2016 5.23046H88.4742V2.87951H86.2016V0.450195H82.7535V2.84033H82.205L80.6377 5.19128H82.7535V10.6377C82.7535 11.7348 82.7927 12.5576 83.2629 13.2237C84.0074 14.2816 85.3004 14.36 86.515 14.36C87.142 14.36 87.6121 14.2816 88.3174 14.1641V11.5389L87.1028 11.578C86.1624 11.578 86.1624 10.9903 86.2016 10.285V5.23046Z" fill="white"/>
+                <path d="M55.3257 0.450195V2.84033H58.8914L57.324 5.19128H55.2866V10.285C55.2474 10.9903 55.2474 11.578 56.1878 11.578L57.4024 11.5389V14.1641L57.2106 14.1945C56.5796 14.295 56.1711 14.36 55.6 14.36C54.4245 14.36 53.0923 14.2816 52.3479 13.2237C51.8777 12.5576 51.8385 11.7348 51.8385 10.6377V0.450195H55.3257Z" fill="white"/>
+                <path d="M91.6088 5.23046H91.2169V3.19297H90.4333V2.84033H92.3924V3.19297H91.6088V5.23046Z" fill="white"/>
+                <path d="M94.9393 5.23046H94.5475V3.78071L94.5866 3.31052L94.4691 3.70234L93.9597 5.26965H93.5679L93.0585 3.70234L92.941 3.31052L92.9802 3.78071V5.23046H92.5883V2.87951H93.1761L93.7638 4.76027L94.3515 2.87951H94.9393V5.23046Z" fill="white"/>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M69.7037 11.3039L69.0376 12.2834C68.4107 13.1454 67.2744 14.5168 63.9439 14.5168C60.4566 14.5168 58.1449 12.4402 58.1449 8.67863C58.1449 5.93586 59.5554 2.52698 64.179 2.52698C64.2089 2.52698 64.2411 2.52684 64.2754 2.52669C65.0527 2.52329 66.9473 2.51502 68.4107 4.01591C69.9388 5.6224 70.0172 7.8558 70.0564 9.14882H61.6713C61.6321 10.5594 62.3766 12.0091 64.2182 12.0091C65.9954 12.0091 66.583 10.9246 67.006 10.144L67.0067 10.1426C67.0311 10.0976 67.055 10.0536 67.0785 10.0108L69.7037 11.3039ZM66.4755 6.97916C66.4005 6.51714 66.3013 5.90563 65.8246 5.46567C65.3936 5.03466 64.7275 4.83875 64.1398 4.83875C63.317 4.83875 62.7292 5.23057 62.3766 5.58321C61.9064 6.09257 61.7889 6.60192 61.6713 7.11128L66.4907 7.07215C66.4857 7.04208 66.4806 7.01072 66.4755 6.97916Z" fill="white"/>
+                <path d="M77.1925 8.28793L81.5026 14.2829H77.5451L75.2726 11.1091L73.1959 14.2829H69.2776L73.2742 8.28793L69.3952 2.88074H73.3134L75.155 5.4276L76.8399 2.88074H80.7581L77.1925 8.28793Z" fill="white"/>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M20.3778 2.56728C18.693 2.56728 17.6351 3.35093 17.3216 3.8603V2.84156H13.8343V18.0052H17.2824V13.2249C17.5567 13.6951 18.7322 14.518 20.2211 14.518C24.4136 14.518 25.2756 10.8348 25.2756 8.48384C25.2756 4.68314 23.2382 2.56728 20.3778 2.56728ZM17.9093 6.05452C18.3795 5.4276 19.0456 5.19251 19.6725 5.19251C19.8024 5.19251 19.9322 5.2194 20.0843 5.2509C20.1158 5.25743 20.1483 5.26415 20.1819 5.27087C21.5925 5.58433 22.0235 7.07327 22.0235 8.48384C22.0235 10.1687 21.279 11.8927 19.5942 11.8927C19.0064 11.8927 18.4187 11.6184 18.0269 11.1874C17.5959 10.7172 17.204 9.89441 17.204 8.56221C17.204 7.54346 17.4 6.64226 17.9093 6.05452Z" fill="white"/>
+            </g>
+            <defs>
+                <clipPath id="clip0_3195_418902">
+                    <rect width="95" height="18" fill="white"/>
+                </clipPath>
+            </defs>
+        </svg>
+        <div class="ot-divider"></div>
+        <div class="ot-product-name">Application Security Posture Management</div>
+    </div>
+    <div class="wrap">
+        <!-- MASTHEAD with page nav + theme toggle -->
+        <div class="masthead">
+            <div>
+                <h1 id="pageTitle" style="margin:0;">Program Dashboard</h1>
+                <p id="pageSubtitle" style="margin:4px 0 0 0; font-size:14px; color:var(--text-muted);">Track
+                    application inventory, scan coverage, and overall security program status</p>
+            </div>
+            <div class="nav-group">
+                <div class="nav">
+                    <button id="navProgram" class="active" type="button">Program</button>
+                    <button id="navRisk" type="button">Risk Exposure</button>
+                    <button id="navRemediation" type="button">Remediation</button>
+                </div>
+                <label class="theme-toggle">
+                    <input type="checkbox" id="themeToggle" aria-label="Toggle dark mode">
+                    <span class="theme-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Filter Toggle Button and Active Tags -->
+        <div class="filter-tags-container">
+            <button class="filter-toggle-btn" id="filterToggle" onclick="toggleFilters()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+                </svg>
+                Filters
+                <span class="filter-badge" id="filterBadge" style="display: none;">0</span>
+            </button>
+            <div id="activeFilterTags"></div>
+        </div>
+
+        <!-- Filter Panel -->
+        <div class="filter-panel" id="filterPanel">
+            <div class="filter-header">
+                <h3>Filter Applications</h3>
+                <div class="filter-actions">
+                    <button class="filter-btn" onclick="clearFilters()">Clear All</button>
+                    <button class="filter-btn primary" onclick="applyFilters()">Apply Filters</button>
+                </div>
+            </div>
+            
+            <div class="filter-grid">
+                <!-- Business Criticality/Risk -->
+                <div class="filter-group">
+                    <div class="filter-group-label">Business Criticality/Risk</div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="risk-high" name="risk" value="high" onchange="updateFilterCount()">
+                        <label for="risk-high">High</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="risk-medium" name="risk" value="medium" onchange="updateFilterCount()">
+                        <label for="risk-medium">Medium</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="risk-low" name="risk" value="low" onchange="updateFilterCount()">
+                        <label for="risk-low">Low</label>
+                    </div>
+                </div>
+
+                <!-- Application Type -->
+                <div class="filter-group">
+                    <div class="filter-group-label">Application Type</div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="type-mobile" name="type" value="mobile" onchange="updateFilterCount()">
+                        <label for="type-mobile">Mobile</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="type-web" name="type" value="web" onchange="updateFilterCount()">
+                        <label for="type-web">Web</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="type-api" name="type" value="api" onchange="updateFilterCount()">
+                        <label for="type-api">API</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="type-thick" name="type" value="thick" onchange="updateFilterCount()">
+                        <label for="type-thick">Thick client</label>
+                    </div>
+                </div>
+
+                <!-- Business Unit -->
+                <div class="filter-group">
+                    <div class="filter-group-label">Business Unit</div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="bu-content" name="unit" value="content" onchange="updateFilterCount()">
+                        <label for="bu-content">Content</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="bu-itom" name="unit" value="itom" onchange="updateFilterCount()">
+                        <label for="bu-itom">ITOM</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="bu-cyber" name="unit" value="cyber" onchange="updateFilterCount()">
+                        <label for="bu-cyber">Cybersecurity</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="bu-adm" name="unit" value="adm" onchange="updateFilterCount()">
+                        <label for="bu-adm">ADM</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="bu-networks" name="unit" value="networks" onchange="updateFilterCount()">
+                        <label for="bu-networks">Business Networks</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="bu-portfolio" name="unit" value="portfolio" onchange="updateFilterCount()">
+                        <label for="bu-portfolio">Portfolio</label>
+                    </div>
+                </div>
+
+                <!-- SDLC Status -->
+                <div class="filter-group">
+                    <div class="filter-group-label">SDLC Status</div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="sdlc-dev" name="sdlc" value="dev" onchange="updateFilterCount()">
+                        <label for="sdlc-dev">Development</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="sdlc-qa" name="sdlc" value="qa" onchange="updateFilterCount()">
+                        <label for="sdlc-qa">QA/Test</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="sdlc-prod" name="sdlc" value="prod" onchange="updateFilterCount()">
+                        <label for="sdlc-prod">Production</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== PROGRAM DASHBOARD ===================== -->
+        <section id="page-program" class="page active" aria-label="Program Dashboard">
+            <!-- ROW 1: inventory at-a-glance  -->
+            <div class="grid row">
+                <div class="card col-4">
+                    <h3>Applications</h3>
+                    <div class="kpi-inline">
+                        <div class="kpi">124</div>
+                        <span class="delta positive" aria-label="Up 12 percent year over year" title="+12% vs. last year">
+                            <i>▲</i> 12% YoY
+                        </span>
+                    </div>
+                </div>
+                <div class="card col-4">
+                    <h3>Versions/Releases</h3>
+                    <div class="kpi-inline">
+                        <div class="kpi">367</div>
+                        <span class="delta positive" aria-label="Up 7 percent year over year" title="+7% vs. last year">
+                            <i>▲</i> 7% YoY
+                        </span>
+                    </div>
+                </div>
+                <div class="card col-4">
+                    <h3>Users</h3>
+                    <div class="kpi-inline">
+                        <div class="kpi">342</div>
+                        <span class="delta negative" aria-label="Down 3 percent year over year" title="-3% vs. last year">
+                            <i>▼</i> 3% YoY
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 2: OS components / LOC / Files -->
+            <div class="grid row">
+                <div class="card col-4">
+                    <h3>Lines of Code Scanned</h3>
+                    <div class="kpi">74.2M</div>
+                </div>
+                <div class="card col-4">
+                    <h3>Files Scanned</h3>
+                    <div class="kpi">1.9M</div>
+                </div>
+                <div class="card col-4">
+                    <h3>Open Source Components</h3>
+                    <div class="kpi">58,432</div>
+                </div>
+            </div>
+
+            <!-- ROW 3: Application & Version Coverage -->
+            <div class="grid row">
+                <!-- Applications -->
+                <div class="card col-6">
+                    <h3>Application Coverage</h3>
+
+                    <!-- Legend: scanned vs remainder (not scanned) -->
+                    <div class="legend-coverage">
+                        <span class="sw"><i style="background:var(--c-sast)"></i>SAST</span>
+                        <span class="sw"><i style="background:var(--c-dast)"></i>DAST</span>
+                        <span class="sw"><i style="background:var(--c-sca)"></i>SCA</span>
+                        <span class="sw"><i style="background:var(--c-other)"></i>Other</span>
+                        <span class="sw"><i style="background:var(--track)"></i>Not scanned</span>
+                    </div>
+
+                    <div class="hbars">
+                        <!-- SAST (Applications) -->
+                        <div class="hlabel">SAST</div>
+                        <div class="hstack">
+                            <div class="hbar" role="progressbar" aria-label="SAST application coverage"
+                                aria-valuemin="0" aria-valuemax="100" aria-valuenow="82"
+                                style="--pct:82; --fill-color:var(--c-sast);">
+                                <div class="fill"></div>
+                            </div>
+                        </div>
+                        <span class="hmeta">82%</span>
+
+                        <!-- DAST (Applications) -->
+                        <div class="hlabel">DAST</div>
+                        <div class="hstack">
+                            <div class="hbar" role="progressbar" aria-label="DAST application coverage"
+                                aria-valuemin="0" aria-valuemax="100" aria-valuenow="64"
+                                style="--pct:64; --fill-color:var(--c-dast);">
+                                <div class="fill"></div>
+                            </div>
+                        </div>
+                        <span class="hmeta">64%</span>
+
+                        <!-- SCA (Applications) -->
+                        <div class="hlabel">SCA</div>
+                        <div class="hstack">
+                            <div class="hbar" role="progressbar" aria-label="SCA application coverage" aria-valuemin="0"
+                                aria-valuemax="100" aria-valuenow="71" style="--pct:71; --fill-color:var(--c-sca);">
+                                <div class="fill"></div>
+                            </div>
+                        </div>
+                        <span class="hmeta">71%</span>
+
+                        <!-- Other (Applications) -->
+                        <div class="hlabel">Other</div>
+                        <div class="hstack">
+                            <div class="hbar" role="progressbar" aria-label="Other scan application coverage"
+                                aria-valuemin="0" aria-valuemax="100" aria-valuenow="12"
+                                style="--pct:12; --fill-color:var(--c-other);">
+                                <div class="fill"></div>
+                            </div>
+                        </div>
+                        <span class="hmeta">12%</span>
+                    </div>
+                </div>
+
+                <!-- Versions -->
+                <div class="card col-6">
+                    <h3>Version Coverage</h3>
+
+                    <div class="legend-coverage">
+                        <span class="sw"><i style="background:var(--c-sast)"></i>SAST</span>
+                        <span class="sw"><i style="background:var(--c-dast)"></i>DAST</span>
+                        <span class="sw"><i style="background:var(--c-sca)"></i>SCA</span>
+                        <span class="sw"><i style="background:var(--c-other)"></i>Other</span>
+                        <span class="sw"><i style="background:var(--track)"></i>Not scanned</span>
+                    </div>
+
+                    <div class="hbars">
+                        <!-- SAST (Versions) -->
+                        <div class="hlabel">SAST</div>
+                        <div class="hstack">
+                            <div class="hbar" role="progressbar" aria-label="SAST version coverage" aria-valuemin="0"
+                                aria-valuemax="100" aria-valuenow="68" style="--pct:68; --fill-color:var(--c-sast);">
+                                <div class="fill"></div>
+                            </div>
+                        </div>
+                        <span class="hmeta">68%</span>
+
+                        <!-- DAST (Versions) -->
+                        <div class="hlabel">DAST</div>
+                        <div class="hstack">
+                            <div class="hbar" role="progressbar" aria-label="DAST version coverage" aria-valuemin="0"
+                                aria-valuemax="100" aria-valuenow="55" style="--pct:55; --fill-color:var(--c-dast);">
+                                <div class="fill"></div>
+                            </div>
+                        </div>
+                        <span class="hmeta">55%</span>
+
+                        <!-- SCA (Versions) -->
+                        <div class="hlabel">SCA</div>
+                        <div class="hstack">
+                            <div class="hbar" role="progressbar" aria-label="SCA version coverage" aria-valuemin="0"
+                                aria-valuemax="100" aria-valuenow="73" style="--pct:73; --fill-color:var(--c-sca);">
+                                <div class="fill"></div>
+                            </div>
+                        </div>
+                        <span class="hmeta">73%</span>
+
+                        <!-- Other (Versions) -->
+                        <div class="hlabel">Other</div>
+                        <div class="hstack">
+                            <div class="hbar" role="progressbar" aria-label="Other scan version coverage"
+                                aria-valuemin="0" aria-valuemax="100" aria-valuenow="12"
+                                style="--pct:12; --fill-color:var(--c-other);">
+                                <div class="fill"></div>
+                            </div>
+                        </div>
+                        <span class="hmeta">12%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 4: Scan Activity (Monthly, grouped bar chart with axes) -->
+            <div class="grid row">
+                <div class="card col-12">
+                    <h3>Scan Activity Trend</h3>
+                    <div class="legend">
+                        <span class="sw"><i style="background:var(--c-sast)"></i>SAST</span>
+                        <span class="sw"><i style="background:var(--c-dast)"></i>DAST</span>
+                        <span class="sw"><i style="background:var(--c-sca)"></i>SCA</span>
+                        <span class="sw"><i style="background:var(--c-other)"></i>Other</span>
+                    </div>
+                    <div class="trend-grouped">
+                        <div class="y-axis-label">Completed Scans</div>
+                        <div class="y-axis">
+                            <div>500</div>
+                            <div>400</div>
+                            <div>300</div>
+                            <div>200</div>
+                            <div>100</div>
+                            <div>0</div>
+                        </div>
+                        <div class="chart-area">
+                            <!-- Jan -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:168px; background:var(--c-sast)" title="SAST: 420"></div>
+                                <div class="grouped-bar" style="height:104px; background:var(--c-dast)" title="DAST: 260"></div>
+                                <div class="grouped-bar" style="height:80px; background:var(--c-sca)" title="SCA: 200"></div>
+                                <div class="grouped-bar" style="height:40px; background:var(--c-other)" title="Other: 100"></div>
+                            </div>
+                            <!-- Feb -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:152px; background:var(--c-sast)" title="SAST: 380"></div>
+                                <div class="grouped-bar" style="height:112px; background:var(--c-dast)" title="DAST: 280"></div>
+                                <div class="grouped-bar" style="height:88px; background:var(--c-sca)" title="SCA: 220"></div>
+                                <div class="grouped-bar" style="height:48px; background:var(--c-other)" title="Other: 120"></div>
+                            </div>
+                            <!-- Mar -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:200px; background:var(--c-sast)" title="SAST: 500"></div>
+                                <div class="grouped-bar" style="height:88px; background:var(--c-dast)" title="DAST: 220"></div>
+                                <div class="grouped-bar" style="height:72px; background:var(--c-sca)" title="SCA: 180"></div>
+                                <div class="grouped-bar" style="height:32px; background:var(--c-other)" title="Other: 80"></div>
+                            </div>
+                            <!-- Apr -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:176px; background:var(--c-sast)" title="SAST: 440"></div>
+                                <div class="grouped-bar" style="height:104px; background:var(--c-dast)" title="DAST: 260"></div>
+                                <div class="grouped-bar" style="height:64px; background:var(--c-sca)" title="SCA: 160"></div>
+                                <div class="grouped-bar" style="height:36px; background:var(--c-other)" title="Other: 90"></div>
+                            </div>
+                            <!-- May -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:184px; background:var(--c-sast)" title="SAST: 460"></div>
+                                <div class="grouped-bar" style="height:96px; background:var(--c-dast)" title="DAST: 240"></div>
+                                <div class="grouped-bar" style="height:80px; background:var(--c-sca)" title="SCA: 200"></div>
+                                <div class="grouped-bar" style="height:44px; background:var(--c-other)" title="Other: 110"></div>
+                            </div>
+                            <!-- Jun -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:160px; background:var(--c-sast)" title="SAST: 400"></div>
+                                <div class="grouped-bar" style="height:120px; background:var(--c-dast)" title="DAST: 300"></div>
+                                <div class="grouped-bar" style="height:88px; background:var(--c-sca)" title="SCA: 220"></div>
+                                <div class="grouped-bar" style="height:40px; background:var(--c-other)" title="Other: 100"></div>
+                            </div>
+                            <!-- Jul -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:144px; background:var(--c-sast)" title="SAST: 360"></div>
+                                <div class="grouped-bar" style="height:112px; background:var(--c-dast)" title="DAST: 280"></div>
+                                <div class="grouped-bar" style="height:96px; background:var(--c-sca)" title="SCA: 240"></div>
+                                <div class="grouped-bar" style="height:48px; background:var(--c-other)" title="Other: 120"></div>
+                            </div>
+                            <!-- Aug -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:192px; background:var(--c-sast)" title="SAST: 480"></div>
+                                <div class="grouped-bar" style="height:88px; background:var(--c-dast)" title="DAST: 220"></div>
+                                <div class="grouped-bar" style="height:72px; background:var(--c-sca)" title="SCA: 180"></div>
+                                <div class="grouped-bar" style="height:36px; background:var(--c-other)" title="Other: 90"></div>
+                            </div>
+                            <!-- Sep -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:168px; background:var(--c-sast)" title="SAST: 420"></div>
+                                <div class="grouped-bar" style="height:104px; background:var(--c-dast)" title="DAST: 260"></div>
+                                <div class="grouped-bar" style="height:80px; background:var(--c-sca)" title="SCA: 200"></div>
+                                <div class="grouped-bar" style="height:40px; background:var(--c-other)" title="Other: 100"></div>
+                            </div>
+                            <!-- Oct -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:176px; background:var(--c-sast)" title="SAST: 440"></div>
+                                <div class="grouped-bar" style="height:96px; background:var(--c-dast)" title="DAST: 240"></div>
+                                <div class="grouped-bar" style="height:80px; background:var(--c-sca)" title="SCA: 200"></div>
+                                <div class="grouped-bar" style="height:44px; background:var(--c-other)" title="Other: 110"></div>
+                            </div>
+                            <!-- Nov -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:152px; background:var(--c-sast)" title="SAST: 380"></div>
+                                <div class="grouped-bar" style="height:112px; background:var(--c-dast)" title="DAST: 280"></div>
+                                <div class="grouped-bar" style="height:88px; background:var(--c-sca)" title="SCA: 220"></div>
+                                <div class="grouped-bar" style="height:48px; background:var(--c-other)" title="Other: 120"></div>
+                            </div>
+                            <!-- Dec -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:200px; background:var(--c-sast)" title="SAST: 500"></div>
+                                <div class="grouped-bar" style="height:88px; background:var(--c-dast)" title="DAST: 220"></div>
+                                <div class="grouped-bar" style="height:72px; background:var(--c-sca)" title="SCA: 180"></div>
+                                <div class="grouped-bar" style="height:40px; background:var(--c-other)" title="Other: 100"></div>
+                            </div>
+                        </div>
+                        <div class="x-axis">
+                            <div class="month-label">Jan</div>
+                            <div class="month-label">Feb</div>
+                            <div class="month-label">Mar</div>
+                            <div class="month-label">Apr</div>
+                            <div class="month-label">May</div>
+                            <div class="month-label">Jun</div>
+                            <div class="month-label">Jul</div>
+                            <div class="month-label">Aug</div>
+                            <div class="month-label">Sep</div>
+                            <div class="month-label">Oct</div>
+                            <div class="month-label">Nov</div>
+                            <div class="month-label">Dec</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 5: Entitlements (left) + Tech Stack (right) -->
+            <div class="grid row">
+                <div class="card col-6">
+                    <h3>Entitlements</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Entitlement ID</th>
+                                <th>Units Purchased</th>
+                                <th>Units Consumed</th>
+                                <th>% Used</th>
+                                <th>Start</th>
+                                <th>End</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1524</td>
+                                <td>500</td>
+                                <td>412</td>
+                                <td>82%</td>
+                                <td>2025-01-01</td>
+                                <td>2025-12-31</td>
+                            </tr>
+                            <tr>
+                                <td>1880</td>
+                                <td>200</td>
+                                <td>190</td>
+                                <td class="warn">95%</td>
+                                <td>2025-01-01</td>
+                                <td>2025-12-31</td>
+                            </tr>
+                            <tr>
+                                <td>2003</td>
+                                <td>400</td>
+                                <td>240</td>
+                                <td>60%</td>
+                                <td>2025-01-01</td>
+                                <td>2025-12-31</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card col-6">
+                    <h3>Applications by Language</h3>
+                    <div class="treemap mt-8">
+                        <div class="tree-seg" style="width:38%; background:#3B82F6" title="Java 38%"></div>
+                        <div class="tree-seg" style="width:24%; background:#22C55E" title="JavaScript/TypeScript 24%">
+                        </div>
+                        <div class="tree-seg" style="width:18%; background:#6366F1" title=".NET 18%"></div>
+                        <div class="tree-seg" style="width:10%; background:#F97316" title="Python 10%"></div>
+                        <div class="tree-seg" style="width:6%; background:#0EA5E9" title="Go 6%"></div>
+                        <div class="tree-seg" style="width:4%; background:#64748B" title="Other 4%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW: ScanCentral SAST Utilization -->
+            <div class="grid row">
+                <div class="card col-6">
+                    <h3>ScanCentral SAST Utilization</h3>
+                    <div class="hmeta">24 Total Sensors</div>
+                    <div class="donut-wrap">
+                        <div class="donut" style="background:conic-gradient(
+                #F59E0B 0% 97%,
+                var(--track) 97% 100%
+              ) !important;"></div>
+                        <div>
+                            <div style="font-size: 20px; color:#F59E0B; font-weight:500;">97% Active Scanning</div>
+                            <div class="muted">3% Idle</div>
+                        </div>
+                    </div>
+                    <div class="legend" style="margin-top: 12px;">
+                        <span class="sw"><i style="background:#F59E0B"></i>Active Scanning</span>
+                        <span class="sw"><i style="background:var(--track)"></i>Idle</span>
+                    </div>
+                    <div class="muted" style="margin-top: 12px; font-size: 12px;">Last 7 days average utilization</div>
+                </div>
+                <div class="card col-6">
+                    <h3>ScanCentral DAST Utilization</h3>
+                    <div class="hmeta">12 Total Sensors</div>
+                    <div class="donut-wrap">
+                        <div class="donut" style="background:conic-gradient(
+                #22C55E 0% 71%,
+                var(--track) 71% 100%
+              ) !important;"></div>
+                        <div>
+                            <div style="font-size: 20px; color:#22C55E; font-weight:500;">71% Active Scanning</div>
+                            <div class="muted">29% Idle</div>
+                        </div>
+                    </div>
+                    <div class="legend" style="margin-top: 12px;">
+                        <span class="sw"><i style="background:#22C55E"></i>Active Scanning</span>
+                        <span class="sw"><i style="background:var(--track)"></i>Idle</span>
+                    </div>
+                    <div class="muted" style="margin-top: 12px; font-size: 12px;">Last 7 days average utilization</div>
+                </div>
+            </div>
+
+            
+        </section>
+
+        <!-- ===================== RISK EXPOSURE DASHBOARD ===================== -->
+        <section id="page-risk" class="page" aria-label="Risk Exposure Dashboard">
+            <!-- ROW 1: Star Rating + Policy Compliance -->
+            <div class="grid row">
+                <div class="card col-6">
+                    <h3>Versions by Policy Compliance</h3>
+                    <div class="donut-wrap">
+                        <div class="donut" style="background:conic-gradient(
+                var(--compliance-pass) 0% 60%,
+                var(--compliance-fail) 0% 85%,
+                var(--compliance-unassessed) 0% 100%
+              ) !important;"></div>
+                        <div>
+                            <div class="kpi">60% <span class="muted">Passing</span> <span style="color:var(--compliance-pass);font-weight:500;">(220)</span></div>
+                            <div class="muted">25% Failing <span style="color:var(--compliance-fail);font-weight:500;">(92)</span></div>
+                            <div class="muted">15% Unassessed <span style="color:var(--compliance-unassessed);font-weight:500;">(55)</span></div>
+                            <div class="legend-coverage" aria-hidden="true">
+                                <span class="sw"><i style="background:var(--compliance-pass)"></i>Passing</span>
+                                <span class="sw"><i style="background:var(--compliance-fail)"></i>Failing</span>
+                                <span class="sw"><i
+                                        style="background:var(--compliance-unassessed)"></i>Unassessed</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card col-6">
+                    <h3>Versions by Star Rating</h3>
+                    <div class="legend">
+                        <span class="sw"><i style="background:#9CA3AF"></i>0★ (not scanned)</span>
+                        <span class="sw"><i style="background:var(--sev-critical)"></i>1★ (criticals)</span>
+                        <span class="sw"><i style="background:var(--sev-high)"></i>2★ (highs)</span>
+                        <span class="sw"><i style="background:var(--sev-medium)"></i>3★ (mediums)</span>
+                        <span class="sw"><i style="background:#1aa364"></i>4★–5★ (low/none)</span>
+                    </div>
+                    <div class="hbars" role="group" aria-label="Versions by star rating">
+                        <div class="hlabel">0★</div>
+                        <div class="hbar" style="--pct:8; --fill-color:#9CA3AF">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">8% (29)</div>
+                        <div class="hlabel">1★</div>
+                        <div class="hbar" style="--pct:6; --fill-color:var(--sev-critical)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">6% (22)</div>
+                        <div class="hlabel">2★</div>
+                        <div class="hbar" style="--pct:12; --fill-color:var(--sev-high)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">12% (44)</div>
+                        <div class="hlabel">3★</div>
+                        <div class="hbar" style="--pct:26; --fill-color:var(--sev-medium)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">26% (95)</div>
+                        <div class="hlabel">4★</div>
+                        <div class="hbar" style="--pct:28; --fill-color:#1aa364">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">28% (103)</div>
+                        <div class="hlabel">5★</div>
+                        <div class="hbar" style="--pct:20; --fill-color:#0E9F6E">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">20% (74)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 2: Open Issues by Severity (All & Production with total count) + Vulnerability Density -->
+            <div class="grid row">
+                <div class="card col-4">
+                    <h3>Open Issues by Severity (All)</h3>
+                    <div class="donut-wrap">
+                        <div class="donut" style="background:conic-gradient(
+                var(--sev-critical) 0% 12%,
+                var(--sev-high) 12% 30%,
+                var(--sev-medium) 30% 52%,
+                var(--sev-low) 52% 100%
+              ) !important;"></div>
+                        <div>
+                            <div style="font-size: 24px; color: var(--text-muted);">12% Critical <span
+                                    style="color:var(--sev-critical);font-weight:500;">(16,116)</span></div>
+                            <div class="muted">18% High <span
+                                    style="color:var(--sev-high);font-weight:500;">(24,173)</span></div>
+                            <div class="muted">22% Medium <span
+                                    style="color:var(--sev-medium);font-weight:500;">(29,546)</span></div>
+                            <div class="muted">48% Low <span
+                                    style="color:var(--sev-low);font-weight:500;">(64,464)</span></div>
+                            <div class="legend-coverage" aria-hidden="true">
+                                <span class="sw"><i style="background:var(--sev-critical)"></i>Critical</span>
+                                <span class="sw"><i style="background:var(--sev-high)"></i>High</span>
+                                <span class="sw"><i style="background:var(--sev-medium)"></i>Medium</span>
+                                <span class="sw"><i style="background:var(--sev-low)"></i>Low</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border); margin-top: 12px;">
+                        <span style="color: var(--text); font-weight: 600;">Total</span>
+                        <div style="flex: 1; text-align: right;">
+                            <span style="font-size: 24px; font-weight: 700; color: var(--text);">134,299</span>
+                            <span style="font-size: 14px; color: var(--text-muted); margin-left: 4px;">issues</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-4">
+                    <h3>Open Issues by Severity (Production)</h3>
+                    <div class="legend">
+                        <span class="sw"><i style="background:var(--sev-critical)"></i>Critical</span>
+                        <span class="sw"><i style="background:var(--sev-high)"></i>High</span>
+                        <span class="sw"><i style="background:var(--sev-medium)"></i>Medium</span>
+                        <span class="sw"><i style="background:var(--sev-low)"></i>Low</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="width: 70px; color: var(--sev-critical); font-weight: 600;">Critical</span>
+                            <div
+                                style="height: 28px; background: var(--sev-critical); border-radius: 6px; position: relative; width: 19%; min-width: 32px; max-width: 100%;">
+                                <span
+                                    style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #fff; font-weight: 600;">9</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="width: 70px; color: var(--sev-high); font-weight: 600;">High</span>
+                            <div
+                                style="height: 28px; background: var(--sev-high); border-radius: 6px; position: relative; width: 30%; min-width: 32px; max-width: 100%;">
+                                <span
+                                    style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #fff; font-weight: 600;">14</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="width: 70px; color: var(--sev-medium); font-weight: 600;">Medium</span>
+                            <div
+                                style="height: 28px; background: var(--sev-medium); border-radius: 6px; position: relative; width: 38%; min-width: 32px; max-width: 100%;">
+                                <span
+                                    style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #fff; font-weight: 600;">18</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="width: 70px; color: var(--sev-low); font-weight: 600;">Low</span>
+                            <div style="height: 28px; background: var(--sev-low); border-radius: 6px; position: relative; width: 100%; min-width: 32px; max-width: 100%;">
+                                <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #fff; font-weight: 600;">48</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px; padding-top: 8px; border-top: 1px solid var(--border); margin-top: 8px;">
+                            <span style="width: 70px; color: var(--text); font-weight: 600;">Total</span>
+                            <div style="flex: 1; text-align: right;">
+                                <span style="font-size: 24px; font-weight: 700; color: var(--text);">89</span>
+                                <span style="font-size: 14px; color: var(--text-muted); margin-left: 4px;">issues</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card col-4">
+                    <h3>Vulnerability Density</h3>
+                    <div class="kpi">7.4 <span class="muted">open issues per version / release</span></div>
+                    <span class="delta negative" aria-label="Down 38 percent year over year" title="-8% vs. last year">
+                        <i>▼</i> 8% YoY
+                    </span>
+                </div>
+            </div>
+
+            <!-- ROW 3: New Issues by Severity (Monthly, grouped bar chart with axes) -->
+            <div class="grid row">
+                <div class="card col-12">
+                    <h3>New Issue Detection Trend</h3>
+                    <div class="legend">
+                        <span class="sw"><i style="background:var(--sev-critical)"></i>Critical</span>
+                        <span class="sw"><i style="background:var(--sev-high)"></i>High</span>
+                        <span class="sw"><i style="background:var(--sev-medium)"></i>Medium</span>
+                        <span class="sw"><i style="background:var(--sev-low)"></i>Low</span>
+                    </div>
+                    <div class="trend-grouped">
+                        <div class="y-axis-label">Number of New Issues</div>
+                        <div class="y-axis">
+                            <div>400</div>
+                            <div>320</div>
+                            <div>240</div>
+                            <div>160</div>
+                            <div>80</div>
+                            <div>0</div>
+                        </div>
+                        <div class="chart-area">
+                            <!-- Jan -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:35px; background:var(--sev-critical)" title="Critical: 70"></div>
+                                <div class="grouped-bar" style="height:70px; background:var(--sev-high)" title="High: 140"></div>
+                                <div class="grouped-bar" style="height:140px; background:var(--sev-medium)" title="Medium: 280"></div>
+                                <div class="grouped-bar" style="height:55px; background:var(--sev-low)" title="Low: 110"></div>
+                            </div>
+                            <!-- Feb -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:65px; background:var(--sev-critical)" title="Critical: 130"></div>
+                                <div class="grouped-bar" style="height:125px; background:var(--sev-high)" title="High: 250"></div>
+                                <div class="grouped-bar" style="height:80px; background:var(--sev-medium)" title="Medium: 160"></div>
+                                <div class="grouped-bar" style="height:90px; background:var(--sev-low)" title="Low: 180"></div>
+                            </div>
+                            <!-- Mar -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:95px; background:var(--sev-critical)" title="Critical: 190"></div>
+                                <div class="grouped-bar" style="height:55px; background:var(--sev-high)" title="High: 110"></div>
+                                <div class="grouped-bar" style="height:160px; background:var(--sev-medium)" title="Medium: 320"></div>
+                                <div class="grouped-bar" style="height:45px; background:var(--sev-low)" title="Low: 90"></div>
+                            </div>
+                            <!-- Apr -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:40px; background:var(--sev-critical)" title="Critical: 80"></div>
+                                <div class="grouped-bar" style="height:140px; background:var(--sev-high)" title="High: 280"></div>
+                                <div class="grouped-bar" style="height:70px; background:var(--sev-medium)" title="Medium: 140"></div>
+                                <div class="grouped-bar" style="height:105px; background:var(--sev-low)" title="Low: 210"></div>
+                            </div>
+                            <!-- May -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:85px; background:var(--sev-critical)" title="Critical: 170"></div>
+                                <div class="grouped-bar" style="height:110px; background:var(--sev-high)" title="High: 220"></div>
+                                <div class="grouped-bar" style="height:95px; background:var(--sev-medium)" title="Medium: 190"></div>
+                                <div class="grouped-bar" style="height:65px; background:var(--sev-low)" title="Low: 130"></div>
+                            </div>
+                            <!-- Jun -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:75px; background:var(--sev-critical)" title="Critical: 150"></div>
+                                <div class="grouped-bar" style="height:65px; background:var(--sev-high)" title="High: 130"></div>
+                                <div class="grouped-bar" style="height:125px; background:var(--sev-medium)" title="Medium: 250"></div>
+                                <div class="grouped-bar" style="height:80px; background:var(--sev-low)" title="Low: 160"></div>
+                            </div>
+                            <!-- Jul -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:60px; background:var(--sev-critical)" title="Critical: 120"></div>
+                                <div class="grouped-bar" style="height:95px; background:var(--sev-high)" title="High: 190"></div>
+                                <div class="grouped-bar" style="height:105px; background:var(--sev-medium)" title="Medium: 210"></div>
+                                <div class="grouped-bar" style="height:40px; background:var(--sev-low)" title="Low: 80"></div>
+                            </div>
+                            <!-- Aug -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:50px; background:var(--sev-critical)" title="Critical: 100"></div>
+                                <div class="grouped-bar" style="height:135px; background:var(--sev-high)" title="High: 270"></div>
+                                <div class="grouped-bar" style="height:65px; background:var(--sev-medium)" title="Medium: 130"></div>
+                                <div class="grouped-bar" style="height:95px; background:var(--sev-low)" title="Low: 190"></div>
+                            </div>
+                            <!-- Sep -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:70px; background:var(--sev-critical)" title="Critical: 140"></div>
+                                <div class="grouped-bar" style="height:60px; background:var(--sev-high)" title="High: 120"></div>
+                                <div class="grouped-bar" style="height:145px; background:var(--sev-medium)" title="Medium: 290"></div>
+                                <div class="grouped-bar" style="height:75px; background:var(--sev-low)" title="Low: 150"></div>
+                            </div>
+                            <!-- Oct -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:55px; background:var(--sev-critical)" title="Critical: 110"></div>
+                                <div class="grouped-bar" style="height:100px; background:var(--sev-high)" title="High: 200"></div>
+                                <div class="grouped-bar" style="height:115px; background:var(--sev-medium)" title="Medium: 230"></div>
+                                <div class="grouped-bar" style="height:60px; background:var(--sev-low)" title="Low: 120"></div>
+                            </div>
+                            <!-- Nov -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:45px; background:var(--sev-critical)" title="Critical: 90"></div>
+                                <div class="grouped-bar" style="height:120px; background:var(--sev-high)" title="High: 240"></div>
+                                <div class="grouped-bar" style="height:90px; background:var(--sev-medium)" title="Medium: 180"></div>
+                                <div class="grouped-bar" style="height:85px; background:var(--sev-low)" title="Low: 170"></div>
+                            </div>
+                            <!-- Dec -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:65px; background:var(--sev-critical)" title="Critical: 130"></div>
+                                <div class="grouped-bar" style="height:75px; background:var(--sev-high)" title="High: 150"></div>
+                                <div class="grouped-bar" style="height:135px; background:var(--sev-medium)" title="Medium: 270"></div>
+                                <div class="grouped-bar" style="height:70px; background:var(--sev-low)" title="Low: 140"></div>
+                            </div>
+                        </div>
+                        <div class="x-axis">
+                            <div class="month-label">Jan</div>
+                            <div class="month-label">Feb</div>
+                            <div class="month-label">Mar</div>
+                            <div class="month-label">Apr</div>
+                            <div class="month-label">May</div>
+                            <div class="month-label">Jun</div>
+                            <div class="month-label">Jul</div>
+                            <div class="month-label">Aug</div>
+                            <div class="month-label">Sep</div>
+                            <div class="month-label">Oct</div>
+                            <div class="month-label">Nov</div>
+                            <div class="month-label">Dec</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 4: Top Categories + Dependency Risk -->
+            <div class="grid row">
+                <div class="card col-6">
+                    <h3>Most Prevalent Vulnerabilities</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th style="text-align:right;">Open Issues</th>
+                                <th style="text-align:right;">Critical</th>
+                                <th style="text-align:right;">High</th>
+                                <th style="text-align:right;">Versions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Command Injection</td>
+                                <td style="text-align:right">342</td>
+                                <td style="text-align:right">58</td>
+                                <td style="text-align:right">104</td>
+                                <td style="text-align:right">28</td>
+                            </tr>
+                            <tr>
+                                <td>SQL Injection</td>
+                                <td style="text-align:right">298</td>
+                                <td style="text-align:right">42</td>
+                                <td style="text-align:right">87</td>
+                                <td style="text-align:right">24</td>
+                            </tr>
+                            <tr>
+                                <td>Cross-Site Scripting (XSS)</td>
+                                <td style="text-align:right">212</td>
+                                <td style="text-align:right">29</td>
+                                <td style="text-align:right">64</td>
+                                <td style="text-align:right">19</td>
+                            </tr>
+                            <tr>
+                                <td>XML External Entity (XXE)</td>
+                                <td style="text-align:right">166</td>
+                                <td style="text-align:right">18</td>
+                                <td style="text-align:right">51</td>
+                                <td style="text-align:right">17</td>
+                            </tr>
+                            <tr>
+                                <td>Server-Side Request Forgery (SSRF)</td>
+                                <td style="text-align:right">144</td>
+                                <td style="text-align:right">22</td>
+                                <td style="text-align:right">48</td>
+                                <td style="text-align:right">15</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card col-6">
+                    <h3>Security Technical Debt Aging</h3>
+                    <div class="matrix" role="table" aria-label="Open issues by age and severity">
+                        <div></div>
+                        <div class="mx-h">&lt;30d</div>
+                        <div class="mx-h">30–60d</div>
+                        <div class="mx-h">60–90d</div>
+                        <div class="mx-h">&gt;90d</div>
+                        <div class="mx-rowlabel">Critical</div>
+                        <div class="mx-cell crit"><span class="badge">42</span></div>
+                        <div class="mx-cell crit"><span class="badge">35</span></div>
+                        <div class="mx-cell crit"><span class="badge">22</span></div>
+                        <div class="mx-cell crit"><span class="badge">18</span></div>
+                        <div class="mx-rowlabel">High</div>
+                        <div class="mx-cell high"><span class="badge">88</span></div>
+                        <div class="mx-cell high"><span class="badge">73</span></div>
+                        <div class="mx-cell high"><span class="badge">51</span></div>
+                        <div class="mx-cell high"><span class="badge">39</span></div>
+                        <div class="mx-rowlabel">Medium</div>
+                        <div class="mx-cell med"><span class="badge">132</span></div>
+                        <div class="mx-cell med"><span class="badge">104</span></div>
+                        <div class="mx-cell med"><span class="badge">76</span></div>
+                        <div class="mx-cell med"><span class="badge">55</span></div>
+                        <div class="mx-rowlabel">Low</div>
+                        <div class="mx-cell low"><span class="badge">165</span></div>
+                        <div class="mx-cell low"><span class="badge">142</span></div>
+                        <div class="mx-cell low"><span class="badge">118</span></div>
+                        <div class="mx-cell low"><span class="badge">94</span></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ROW 5: Dependency Risk + License Risk -->
+            <div class="grid row">
+                <div class="card col-6">
+                    <h3>Open Source Security Risk</h3>
+                    <div class="donut-wrap">
+                        <div class="donut" style="--pct:38; --ring-color:var(--status-error)"></div>
+                        <div>
+                            <div class="kpi">22,204 (38%) <span class="muted">components vulnerable</span></div>
+                            <div class="muted">36,228 (62%) components with no vulnerabilities</div>
+                            <div class="legend" aria-hidden="true">
+                                <span class="sw"><i style="background:var(--status-error)"></i>Vulnerable
+                                    dependencies</span>
+                                <span class="sw"><i style="background:var(--track)"></i>Secure dependencies</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-6">
+                    <h3>Open Source License Risk</h3>
+                    <div class="legend">
+                        <span class="sw"><i style="background:#DC2626"></i>Strong Copy Left</span>
+                        <span class="sw"><i style="background:#F97316"></i>Weak Copy Left</span>
+                        <span class="sw"><i style="background:#10B981"></i>Permissive</span>
+                        <span class="sw"><i style="background:#6B7280"></i>Unknown</span>
+                    </div>
+                    <div class="hbars" role="group" aria-label="Open source license risk">
+                        <div class="hlabel">Strong Copy Left</div>
+                        <div class="hbar" style="--pct:8; --fill-color:#DC2626">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">8% (4,674)</div>
+                        <div class="hlabel">Weak Copy Left</div>
+                        <div class="hbar" style="--pct:14; --fill-color:#F97316">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">14% (8,180)</div>
+                        <div class="hlabel">Permissive</div>
+                        <div class="hbar" style="--pct:72; --fill-color:#10B981">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">72% (42,071)</div>
+                        <div class="hlabel">Unknown</div>
+                        <div class="hbar" style="--pct:6; --fill-color:#6B7280">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">6% (3,507)</div>
+                    </div>
+                </div>
+            </div>
+
+            
+        </section>
+
+        <!-- ===================== REMEDIATION DASHBOARD ===================== -->
+        <section id="page-remediation" class="page" aria-label="Remediation Dashboard">
+            <!-- ROW 1: % Issues Fixed by Severity + % Issues Fixed by Scan Type -->
+            <div class="grid row">
+                <div class="card col-6">
+                    <h3>Remediated Issues by Severity</h3>
+                    <div class="legend">
+                        <span class="sw"><i style="background:var(--sev-critical)"></i>Critical</span>
+                        <span class="sw"><i style="background:var(--sev-high)"></i>High</span>
+                        <span class="sw"><i style="background:var(--sev-medium)"></i>Medium</span>
+                        <span class="sw"><i style="background:var(--sev-low)"></i>Low</span>
+                    </div>
+                    <div class="hbars" role="group" aria-label="Issues fixed by severity">
+                        <div class="hlabel">Critical</div>
+                        <div class="hbar" style="--pct:78; --fill-color:var(--sev-critical)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">78% (2,418)</div>
+                        <div class="hlabel">High</div>
+                        <div class="hbar" style="--pct:82; --fill-color:var(--sev-high)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">82% (4,264)</div>
+                        <div class="hlabel">Medium</div>
+                        <div class="hbar" style="--pct:71; --fill-color:var(--sev-medium)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">71% (5,893)</div>
+                        <div class="hlabel">Low</div>
+                        <div class="hbar" style="--pct:64; --fill-color:var(--sev-low)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">64% (8,832)</div>
+                        <div class="hlabel"
+                            style="font-weight:600; padding-top:8px; border-top:1px solid var(--border); margin-top:8px;">
+                            Total</div>
+                        <div style="padding-top:8px; border-top:1px solid var(--border); margin-top:8px;"></div>
+                        <div class="hmeta"
+                            style="font-weight:600; padding-top:8px; border-top:1px solid var(--border); margin-top:8px;">
+                            73% (21,407)</div>
+                    </div>
+                </div>
+
+                <div class="card col-6">
+                    <h3>Remediated Issues by Scan Type</h3>
+                    <div class="legend">
+                        <span class="sw"><i style="background:var(--c-sast)"></i>SAST</span>
+                        <span class="sw"><i style="background:var(--c-dast)"></i>DAST</span>
+                        <span class="sw"><i style="background:var(--c-sca)"></i>SCA</span>
+                        <span class="sw"><i style="background:var(--c-other)"></i>Other</span>
+                    </div>
+                    <div class="hbars" role="group" aria-label="Issues fixed by scan type">
+                        <div class="hlabel">SAST</div>
+                        <div class="hbar" style="--pct:74; --fill-color:var(--c-sast)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">74% (8,436)</div>
+                        <div class="hlabel">DAST</div>
+                        <div class="hbar" style="--pct:68; --fill-color:var(--c-dast)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">68% (4,692)</div>
+                        <div class="hlabel">SCA</div>
+                        <div class="hbar" style="--pct:81; --fill-color:var(--c-sca)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">81% (7,128)</div>
+                        <div class="hlabel">Other</div>
+                        <div class="hbar" style="--pct:59; --fill-color:var(--c-other)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">59% (1,151)</div>
+                        <div class="hlabel"
+                            style="font-weight:600; padding-top:8px; border-top:1px solid var(--border); margin-top:8px;">
+                            Total</div>
+                        <div style="padding-top:8px; border-top:1px solid var(--border); margin-top:8px;"></div>
+                        <div class="hmeta"
+                            style="font-weight:600; padding-top:8px; border-top:1px solid var(--border); margin-top:8px;">
+                            73% (21,407)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 2: Mean Time to Remediate (Overall) + MTTR by Severity -->
+            <div class="grid row">
+                <div class="card col-4">
+                    <h3>Mean Time to Remediate</h3>
+                    <div class="kpi">14.2 <span class="muted">days</span></div>
+                    <span class="delta negative" aria-label="Down 18 percent year over year" title="-18% vs. last year">
+                        <i>▼</i> 18% YoY
+                    </span>
+                </div>
+                <div class="card col-8">
+                    <h3>Mean Time to Remediate by Severity</h3>
+                    <div class="legend">
+                        <span class="sw"><i style="background:var(--sev-critical)"></i>Critical</span>
+                        <span class="sw"><i style="background:var(--sev-high)"></i>High</span>
+                        <span class="sw"><i style="background:var(--sev-medium)"></i>Medium</span>
+                        <span class="sw"><i style="background:var(--sev-low)"></i>Low</span>
+                    </div>
+                    <div class="hbars" role="group" aria-label="Mean time to remediate by severity">
+                        <div class="hlabel">Critical</div>
+                        <div class="hbar" style="--pct:23; --fill-color:var(--sev-critical)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">5.8d <span class="delta negative"
+                                style="font-size:10px; padding:0 4px;">▼12%</span></div>
+                        <div class="hlabel">High</div>
+                        <div class="hbar" style="--pct:38; --fill-color:var(--sev-high)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">9.7d <span class="delta negative"
+                                style="font-size:10px; padding:0 4px;">▼15%</span></div>
+                        <div class="hlabel">Medium</div>
+                        <div class="hbar" style="--pct:68; --fill-color:var(--sev-medium)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">17.2d <span class="delta negative"
+                                style="font-size:10px; padding:0 4px;">▼22%</span></div>
+                        <div class="hlabel">Low</div>
+                        <div class="hbar" style="--pct:100; --fill-color:var(--sev-low)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">25.3d <span class="delta negative"
+                                style="font-size:10px; padding:0 4px;">▼8%</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 3: Remediated Issues (Monthly, grouped bar chart with axes) -->
+            <div class="grid row">
+                <div class="card col-12">
+                    <h3>Issue Remediation Trend</h3>
+                    <div class="legend">
+                        <span class="sw"><i style="background:var(--sev-critical)"></i>Critical</span>
+                        <span class="sw"><i style="background:var(--sev-high)"></i>High</span>
+                        <span class="sw"><i style="background:var(--sev-medium)"></i>Medium</span>
+                        <span class="sw"><i style="background:var(--sev-low)"></i>Low</span>
+                    </div>
+                    <div class="trend-grouped">
+                        <div class="y-axis-label">Number of Issues</div>
+                        <div class="y-axis">
+                            <div>500</div>
+                            <div>400</div>
+                            <div>300</div>
+                            <div>200</div>
+                            <div>100</div>
+                            <div>0</div>
+                        </div>
+                        <div class="chart-area">
+                            <!-- Jan -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:40px; background:var(--sev-critical)" title="Critical: 80"></div>
+                                <div class="grouped-bar" style="height:60px; background:var(--sev-high)" title="High: 120"></div>
+                                <div class="grouped-bar" style="height:90px; background:var(--sev-medium)" title="Medium: 180"></div>
+                                <div class="grouped-bar" style="height:110px; background:var(--sev-low)" title="Low: 220"></div>
+                            </div>
+                            <!-- Feb -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:55px; background:var(--sev-critical)" title="Critical: 110"></div>
+                                <div class="grouped-bar" style="height:70px; background:var(--sev-high)" title="High: 140"></div>
+                                <div class="grouped-bar" style="height:105px; background:var(--sev-medium)" title="Medium: 210"></div>
+                                <div class="grouped-bar" style="height:130px; background:var(--sev-low)" title="Low: 260"></div>
+                            </div>
+                            <!-- Mar -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:45px; background:var(--sev-critical)" title="Critical: 90"></div>
+                                <div class="grouped-bar" style="height:80px; background:var(--sev-high)" title="High: 160"></div>
+                                <div class="grouped-bar" style="height:120px; background:var(--sev-medium)" title="Medium: 240"></div>
+                                <div class="grouped-bar" style="height:95px; background:var(--sev-low)" title="Low: 190"></div>
+                            </div>
+                            <!-- Apr -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:65px; background:var(--sev-critical)" title="Critical: 130"></div>
+                                <div class="grouped-bar" style="height:95px; background:var(--sev-high)" title="High: 190"></div>
+                                <div class="grouped-bar" style="height:85px; background:var(--sev-medium)" title="Medium: 170"></div>
+                                <div class="grouped-bar" style="height:140px; background:var(--sev-low)" title="Low: 280"></div>
+                            </div>
+                            <!-- May -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:60px; background:var(--sev-critical)" title="Critical: 120"></div>
+                                <div class="grouped-bar" style="height:75px; background:var(--sev-high)" title="High: 150"></div>
+                                <div class="grouped-bar" style="height:100px; background:var(--sev-medium)" title="Medium: 200"></div>
+                                <div class="grouped-bar" style="height:120px; background:var(--sev-low)" title="Low: 240"></div>
+                            </div>
+                            <!-- Jun -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:50px; background:var(--sev-critical)" title="Critical: 100"></div>
+                                <div class="grouped-bar" style="height:65px; background:var(--sev-high)" title="High: 130"></div>
+                                <div class="grouped-bar" style="height:115px; background:var(--sev-medium)" title="Medium: 230"></div>
+                                <div class="grouped-bar" style="height:105px; background:var(--sev-low)" title="Low: 210"></div>
+                            </div>
+                            <!-- Jul -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:70px; background:var(--sev-critical)" title="Critical: 140"></div>
+                                <div class="grouped-bar" style="height:85px; background:var(--sev-high)" title="High: 170"></div>
+                                <div class="grouped-bar" style="height:95px; background:var(--sev-medium)" title="Medium: 190"></div>
+                                <div class="grouped-bar" style="height:145px; background:var(--sev-low)" title="Low: 290"></div>
+                            </div>
+                            <!-- Aug -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:55px; background:var(--sev-critical)" title="Critical: 110"></div>
+                                <div class="grouped-bar" style="height:90px; background:var(--sev-high)" title="High: 180"></div>
+                                <div class="grouped-bar" style="height:110px; background:var(--sev-medium)" title="Medium: 220"></div>
+                                <div class="grouped-bar" style="height:125px; background:var(--sev-low)" title="Low: 250"></div>
+                            </div>
+                            <!-- Sep -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:75px; background:var(--sev-critical)" title="Critical: 150"></div>
+                                <div class="grouped-bar" style="height:80px; background:var(--sev-high)" title="High: 160"></div>
+                                <div class="grouped-bar" style="height:100px; background:var(--sev-medium)" title="Medium: 200"></div>
+                                <div class="grouped-bar" style="height:135px; background:var(--sev-low)" title="Low: 270"></div>
+                            </div>
+                            <!-- Oct -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:60px; background:var(--sev-critical)" title="Critical: 120"></div>
+                                <div class="grouped-bar" style="height:70px; background:var(--sev-high)" title="High: 140"></div>
+                                <div class="grouped-bar" style="height:125px; background:var(--sev-medium)" title="Medium: 250"></div>
+                                <div class="grouped-bar" style="height:115px; background:var(--sev-low)" title="Low: 230"></div>
+                            </div>
+                            <!-- Nov -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:65px; background:var(--sev-critical)" title="Critical: 130"></div>
+                                <div class="grouped-bar" style="height:95px; background:var(--sev-high)" title="High: 190"></div>
+                                <div class="grouped-bar" style="height:105px; background:var(--sev-medium)" title="Medium: 210"></div>
+                                <div class="grouped-bar" style="height:150px; background:var(--sev-low)" title="Low: 300"></div>
+                            </div>
+                            <!-- Dec -->
+                            <div class="month-group">
+                                <div class="grouped-bar" style="height:80px; background:var(--sev-critical)" title="Critical: 160"></div>
+                                <div class="grouped-bar" style="height:85px; background:var(--sev-high)" title="High: 170"></div>
+                                <div class="grouped-bar" style="height:120px; background:var(--sev-medium)" title="Medium: 240"></div>
+                                <div class="grouped-bar" style="height:130px; background:var(--sev-low)" title="Low: 260"></div>
+                            </div>
+                        </div>
+                        <div class="x-axis">
+                            <div class="month-label">Jan</div>
+                            <div class="month-label">Feb</div>
+                            <div class="month-label">Mar</div>
+                            <div class="month-label">Apr</div>
+                            <div class="month-label">May</div>
+                            <div class="month-label">Jun</div>
+                            <div class="month-label">Jul</div>
+                            <div class="month-label">Aug</div>
+                            <div class="month-label">Sep</div>
+                            <div class="month-label">Oct</div>
+                            <div class="month-label">Nov</div>
+                            <div class="month-label">Dec</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 4: % Issues Reviewed by Severity + % Issues Reviewed by Scan Type -->
+            <div class="grid row">
+                <div class="card col-6">
+                    <h3>Reviewed Issues by Severity</h3>
+                    <div class="legend">
+                        <span class="sw"><i style="background:var(--sev-critical)"></i>Critical</span>
+                        <span class="sw"><i style="background:var(--sev-high)"></i>High</span>
+                        <span class="sw"><i style="background:var(--sev-medium)"></i>Medium</span>
+                        <span class="sw"><i style="background:var(--sev-low)"></i>Low</span>
+                    </div>
+                    <div class="hbars" role="group" aria-label="Issues reviewed by severity">
+                        <div class="hlabel">Critical</div>
+                        <div class="hbar" style="--pct:94; --fill-color:var(--sev-critical)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">94% (2,914)</div>
+                        <div class="hlabel">High</div>
+                        <div class="hbar" style="--pct:89; --fill-color:var(--sev-high)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">89% (4,628)</div>
+                        <div class="hlabel">Medium</div>
+                        <div class="hbar" style="--pct:76; --fill-color:var(--sev-medium)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">76% (6,308)</div>
+                        <div class="hlabel">Low</div>
+                        <div class="hbar" style="--pct:58; --fill-color:var(--sev-low)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">58% (8,004)</div>
+                        <div class="hlabel"
+                            style="font-weight:600; padding-top:8px; border-top:1px solid var(--border); margin-top:8px;">
+                            Total</div>
+                        <div style="padding-top:8px; border-top:1px solid var(--border); margin-top:8px;"></div>
+                        <div class="hmeta"
+                            style="font-weight:600; padding-top:8px; border-top:1px solid var(--border); margin-top:8px;">
+                            74% (21,854)</div>
+                    </div>
+                </div>
+
+                <div class="card col-6">
+                    <h3>Reviewed Issues by Scan Type</h3>
+                    <div class="legend">
+                        <span class="sw"><i style="background:var(--c-sast)"></i>SAST</span>
+                        <span class="sw"><i style="background:var(--c-dast)"></i>DAST</span>
+                        <span class="sw"><i style="background:var(--c-sca)"></i>SCA</span>
+                        <span class="sw"><i style="background:var(--c-other)"></i>Other</span>
+                    </div>
+                    <div class="hbars" role="group" aria-label="Issues reviewed by scan type">
+                        <div class="hlabel">SAST</div>
+                        <div class="hbar" style="--pct:86; --fill-color:var(--c-sast)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">86% (9,804)</div>
+                        <div class="hlabel">DAST</div>
+                        <div class="hbar" style="--pct:79; --fill-color:var(--c-dast)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">79% (5,451)</div>
+                        <div class="hlabel">SCA</div>
+                        <div class="hbar" style="--pct:71; --fill-color:var(--c-sca)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">71% (6,247)</div>
+                        <div class="hlabel">Other</div>
+                        <div class="hbar" style="--pct:64; --fill-color:var(--c-other)">
+                            <div class="fill"></div>
+                        </div>
+                        <div class="hmeta">64% (352)</div>
+                        <div class="hlabel"
+                            style="font-weight:600; padding-top:8px; border-top:1px solid var(--border); margin-top:8px;">
+                            Total</div>
+                        <div style="padding-top:8px; border-top:1px solid var(--border); margin-top:8px;"></div>
+                        <div class="hmeta"
+                            style="font-weight:600; padding-top:8px; border-top:1px solid var(--border); margin-top:8px;">
+                            74% (21,854)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 5: Mean Time to Review + % Issues Reopened + Top 5 Reopened Categories -->
+            <div class="grid row">
+                <div class="card col-4">
+                    <h3>Mean Time to Review</h3>
+                    <div class="kpi">2.8 <span class="muted">days</span></div>
+                    <span class="delta negative" aria-label="Down 24 percent year over year" title="-24% vs. last year">
+                        <i>▼</i> 24% YoY
+                    </span>
+                </div>
+                <div class="card col-4">
+                    <h3>Vulnerability Recurrence Rate</h3>
+                    <div class="donut-wrap">
+                        <div class="donut" style="--pct:8; --ring-color:var(--status-error)"></div>
+                        <div>
+                            <div class="kpi">8% <span class="muted">reopened</span></div>
+                            <div class="muted">92% remediated permanently</div>
+                            <div class="legend" aria-hidden="true">
+                                <span class="sw"><i style="background:var(--status-error)"></i>Reopened</span>
+                                <span class="sw"><i style="background:var(--track)"></i>Remediated</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-4">
+                    <h3>Most Reopened Vulnerabilities</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th style="text-align:right;">Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>SQL Injection</td>
+                                <td style="text-align:right">142</td>
+                            </tr>
+                            <tr>
+                                <td>Cross-Site Scripting (XSS)</td>
+                                <td style="text-align:right">118</td>
+                            </tr>
+                            <tr>
+                                <td>Command Injection</td>
+                                <td style="text-align:right">97</td>
+                            </tr>
+                            <tr>
+                                <td>Insecure Deserialization</td>
+                                <td style="text-align:right">84</td>
+                            </tr>
+                            <tr>
+                                <td>XML External Entity (XXE)</td>
+                                <td style="text-align:right">76</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ROW 6: SAST Aviator Metrics -->
+            <div class="grid row">
+                <div class="card col-4">
+                    <h3>SAST Aviator Adoption Rate</h3>
+                    <div class="donut-wrap">
+                        <div class="donut" style="--pct:67; --ring-color:#1aa364"></div>
+                        <div>
+                            <div class="kpi">67% <span class="muted">enabled</span></div>
+                            <div class="muted">83 of 124 applications</div>
+                            <div class="legend" aria-hidden="true">
+                                <span class="sw"><i style="background:#1aa364"></i>Enabled</span>
+                                <span class="sw"><i style="background:var(--track)"></i>Not enabled</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-8">
+                    <h3>SAST Aviator Return on Investment (ROI)</h3>
+                    <div class="kpi-row">
+                        <div>
+                            <div class="kpi">$891,025 <span class="muted">savings</span></div>
+                            <div class="muted" style="margin-top:8px;">Based on development rate of $50/hr
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:24px; margin-top:16px;">
+                            <div>
+                                <div style="font-size:14px; color:var(--text-muted);">Review time saved</div>
+                                <div style="font-size:20px; font-weight:600; color:var(--text); margin-top:4px;">15 min/issue
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size:14px; color:var(--text-muted);">Issues auto-reviewed</div>
+                                <div style="font-size:20px; font-weight:600; color:var(--text); margin-top:4px;">42,630
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size:14px; color:var(--text-muted);">Remediation time saved</div>
+                                <div style="font-size:20px; font-weight:600; color:var(--text); margin-top:4px;">30 min/issue
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size:14px; color:var(--text-muted);">Issues fixed</div>
+                                <div style="font-size:20px; font-weight:600; color:var(--text); margin-top:4px;">14,326
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size:14px; color:var(--text-muted);">Developer hours saved</div>
+                                <div style="font-size:20px; font-weight:600; color:var(--text); margin-top:4px;">17,821 hrs
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+        </section>
+
+    <script>
+        (function () {
+            /* ===== Theme toggle ===== */
+            const THEME_KEY = 'ux-theme';
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const storedTheme = localStorage.getItem(THEME_KEY);
+            const initialTheme = storedTheme || (prefersDark ? 'dark' : 'light');
+            const root = document.documentElement;
+            const themeToggle = document.getElementById('themeToggle');
+
+            function applyTheme(theme) {
+                root.setAttribute('data-theme', theme);
+                localStorage.setItem(THEME_KEY, theme);
+                themeToggle.checked = theme === 'dark';
+            }
+            themeToggle.addEventListener('change', () => applyTheme(themeToggle.checked ? 'dark' : 'light'));
+            applyTheme(initialTheme);
+
+            /* ===== Page switch (Program <-> Risk <-> Remediation) ===== */
+            const title = document.getElementById('pageTitle');
+            const subtitle = document.getElementById('pageSubtitle');
+            const btnProgram = document.getElementById('navProgram');
+            const btnRisk = document.getElementById('navRisk');
+            const btnRemediation = document.getElementById('navRemediation');
+            const pgProgram = document.getElementById('page-program');
+            const pgRisk = document.getElementById('page-risk');
+            const pgRemediation = document.getElementById('page-remediation');
+
+            function show(page, pushHash = true) {
+                // Hide all pages and deactivate all buttons
+                pgProgram.classList.remove('active');
+                pgRisk.classList.remove('active');
+                pgRemediation.classList.remove('active');
+                btnProgram.classList.remove('active');
+                btnRisk.classList.remove('active');
+                btnRemediation.classList.remove('active');
+
+                // Show selected page
+                if (page === 'program') {
+                    pgProgram.classList.add('active');
+                    btnProgram.classList.add('active');
+                    title.textContent = 'Program Dashboard';
+                    subtitle.textContent = 'Track application inventory, scan coverage, and overall security program status';
+                    if (pushHash) location.hash = '#program';
+                } else if (page === 'risk') {
+                    pgRisk.classList.add('active');
+                    btnRisk.classList.add('active');
+                    title.textContent = 'Risk Exposure Dashboard';
+                    subtitle.textContent = 'Monitor vulnerability trends, severity distribution, and security posture across all applications';
+                    if (pushHash) location.hash = '#risk';
+                } else if (page === 'remediation') {
+                    pgRemediation.classList.add('active');
+                    btnRemediation.classList.add('active');
+                    title.textContent = 'Remediation Dashboard';
+                    subtitle.textContent = 'Measure remediation efficiency, review processes, and demonstrate ROI of your AppSec program';
+                    if (pushHash) location.hash = '#remediation';
+                }
+                window.scrollTo({ top: 0, behavior: 'instant' });
+            }
+
+            btnProgram.addEventListener('click', () => show('program'));
+            btnRisk.addEventListener('click', () => show('risk'));
+            btnRemediation.addEventListener('click', () => show('remediation'));
+
+            // Initialize from URL hash if present
+            if (location.hash === '#risk') { show('risk', false); }
+            else if (location.hash === '#remediation') { show('remediation', false); }
+            else { show('program', false); }
+        })();
+
+        /* ===== Filter Panel Functions ===== */
+        function toggleFilters() {
+            const panel = document.getElementById('filterPanel');
+            panel.classList.toggle('open');
+        }
+
+        function updateFilterCount() {
+            const checkboxes = document.querySelectorAll('.filter-panel input[type="checkbox"]');
+            const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+            const badge = document.getElementById('filterBadge');
+            
+            if (checkedCount > 0) {
+                badge.textContent = checkedCount;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+            
+            // Update active filter tags
+            updateFilterTags();
+        }
+
+        function updateFilterTags() {
+            const tagsContainer = document.getElementById('activeFilterTags');
+            tagsContainer.innerHTML = '';
+
+            // Helper to get nice display names
+            const filterLabels = {
+                risk: 'Risk',
+                type: 'Type',
+                unit: 'Business Unit',
+                sdlc: 'SDLC'
+            };
+
+            const valueLabels = {
+                high: 'High',
+                medium: 'Medium',
+                low: 'Low',
+                mobile: 'Mobile',
+                web: 'Web',
+                api: 'API',
+                thick: 'Thick Client',
+                content: 'Content',
+                itom: 'ITOM',
+                cyber: 'Cybersecurity',
+                adm: 'ADM',
+                networks: 'Business Networks',
+                portfolio: 'Portfolio',
+                dev: 'Development',
+                qa: 'QA/Test',
+                prod: 'Production'
+            };
+
+            // Collect all checked filters
+            const categories = ['risk', 'type', 'unit', 'sdlc'];
+            
+            categories.forEach(category => {
+                const checkboxes = document.querySelectorAll(`input[name="${category}"]:checked`);
+                checkboxes.forEach(cb => {
+                    const tag = document.createElement('div');
+                    tag.className = 'filter-tag';
+                    tag.innerHTML = `
+                        <span>${filterLabels[category]}:${valueLabels[cb.value]}</span>
+                        <span class="filter-tag-close" onclick="removeFilter('${cb.id}')">&times;</span>
+                    `;
+                    tagsContainer.appendChild(tag);
+                });
+            });
+        }
+
+        function removeFilter(checkboxId) {
+            const checkbox = document.getElementById(checkboxId);
+            if (checkbox) {
+                checkbox.checked = false;
+                updateFilterCount();
+            }
+        }
+
+        function clearFilters() {
+            const checkboxes = document.querySelectorAll('.filter-panel input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = false);
+            updateFilterCount();
+        }
+
+        function applyFilters() {
+            // Collect selected filters
+            const filters = {
+                risk: [],
+                type: [],
+                unit: [],
+                sdlc: []
+            };
+
+            document.querySelectorAll('input[name="risk"]:checked').forEach(cb => {
+                filters.risk.push(cb.value);
+            });
+            document.querySelectorAll('input[name="type"]:checked').forEach(cb => {
+                filters.type.push(cb.value);
+            });
+            document.querySelectorAll('input[name="unit"]:checked').forEach(cb => {
+                filters.unit.push(cb.value);
+            });
+            document.querySelectorAll('input[name="sdlc"]:checked').forEach(cb => {
+                filters.sdlc.push(cb.value);
+            });
+
+            // Show mock message (in real implementation, this would filter the dashboard data)
+            const selectedCount = Object.values(filters).flat().length;
+            if (selectedCount > 0) {
+                console.log('Filters applied:', filters);
+                // Optionally show a toast notification
+                alert(`Filters applied! (${selectedCount} filter${selectedCount !== 1 ? 's' : ''} selected)\n\nThis is a mockup - filtering functionality will be implemented in the production version.`);
+            }
+            
+            // Close the filter panel
+            document.getElementById('filterPanel').classList.remove('open');
+        }
+    </script>
+</body>
+
+</html>
