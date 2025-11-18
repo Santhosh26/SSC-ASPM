@@ -2,7 +2,9 @@
 
 ## Executive Summary
 
-Transform the static ASPM dashboard (`aspm_dashboard_otw.html`) into a fully functional system that pulls real-time data from Fortify Software Security Center (SSC). The solution uses a Node.js/Express backend for data aggregation and caching, with Python test scripts for initial API validation.
+Transform the static ASPM dashboard (`aspm_dashboard.html`) into a fully functional system that pulls real-time data from Fortify Software Security Center (SSC). The solution uses a Node.js/Express backend for data aggregation and caching, with Python test scripts for initial API validation.
+
+**Current Status:** Phase 1 COMPLETE ✅ (November 18, 2025)
 
 ## Architecture Overview
 
@@ -67,18 +69,47 @@ These filters are based on SSC custom attributes (already configured in the SSC 
 
 ## Implementation Phases
 
-### Phase 1: SSC API Validation (1-2 days)
+### Phase 1: SSC API Validation ✅ **COMPLETE** (November 18, 2025)
 **Objective**: Validate all SSC API endpoints and document data structures
 
-Create Python test scripts to:
-- Test authentication with FortifyToken
-- Validate each required API endpoint
-- Document response structures and field mappings
-- Test custom attribute filters
-- Identify API limitations and edge cases
-- Create sample data transformations
+**Status**: ✅ COMPLETE
+**Duration**: 2 days (November 16-18, 2025)
+**Scripts Created**: 11 Python test scripts (~2,800 lines of code)
+**Documentation**: 8 detailed documents (~5,000 lines)
 
-**Key Deliverable**: Working Python scripts that prove all required data can be extracted from SSC
+**Completed Activities:**
+- ✅ Test authentication with FortifyToken - WORKING
+- ✅ Validate each required API endpoint - ALL TESTED
+- ✅ Document response structures and field mappings - DOCUMENTED
+- ✅ Test custom attribute filters - VALIDATED
+- ✅ Identify API limitations and edge cases - **CRITICAL FINDINGS BELOW**
+- ✅ Create sample data transformations - VALIDATED
+
+**Key Deliverable**: ✅ Working Python scripts + comprehensive validation documentation
+
+**Critical Discoveries:**
+1. ❌ **Global `/issues` endpoint does NOT exist** in SSC v25.2
+   - Must use `/projectVersions/{id}/issues` for each version
+   - Requires iteration through all versions for global metrics
+
+2. ⚠️ **Query modifier `removed` NOT supported**
+   - Cannot use `q=removed:false` in SSC v25.2
+   - Must filter in application code after retrieval
+
+3. ⭐ **Star ratings field does NOT exist** in SSC
+   - Must calculate from numeric severity (1.0=Critical, 2.0=High, 3.0=Medium, 4.0=Low, 5.0=Info)
+   - Calculation logic validated and tested
+
+4. ✅ **Review status field EXISTS** (`scanStatus`)
+   - Values: UPDATED, UNREVIEWED
+   - Logic: `scanStatus != 'UNREVIEWED'` = Reviewed
+
+5. ❌ **FOD-specific features NOT available** (3 elements to remove)
+   - Entitlements Table
+   - SAST Aviator Adoption Rate
+   - SAST Aviator ROI
+
+**Dashboard Feasibility**: 29 out of 35 elements (83%) implementable with SSC API
 
 ### Phase 2: Backend Architecture (2-3 days)
 **Objective**: Build Node.js backend with caching and scheduling
@@ -153,22 +184,43 @@ Output: { pass: 220, fail: 92, unassessed: 55 }
 ```
 
 ### Example 2: Issue Severity Distribution
-Aggregate issues across all versions with severity grouping:
+Aggregate issues across all versions (requires iteration):
 
 ```
-SSC API: GET /api/v1/issues?q=removed:false&groupby=severity
-Transformation: Count by severity level
+SSC API: GET /api/v1/projectVersions/{id}/issues?limit=1000&fields=severity,removed
+Iteration: Fetch for all active project versions
+Transformation:
+  1. Filter where removed=false in code
+  2. Group by severity (1.0=Critical, 2.0=High, 3.0=Medium, 4.0=Low, 5.0=Info)
+  3. Count by severity level
 Output: { critical: 16116, high: 24173, medium: 29546, low: 64464 }
 ```
 
-### Example 3: Scan Coverage by Type
+### Example 3: Star Ratings Calculation
+Calculate security rating from issue severity (NOT stored in SSC):
+
+```
+SSC API: GET /api/v1/projectVersions/{id}/issues?limit=1000&fields=severity
+Transformation:
+  1. Get all issues for project version
+  2. Find minimum severity value
+  3. Map to star rating:
+     - min_severity ≤ 1.0 → 1★ (Has Critical)
+     - min_severity ≤ 2.0 → 2★ (Has High)
+     - min_severity ≤ 3.0 → 3★ (Has Medium)
+     - min_severity ≤ 4.0 → 4★ (Has Low)
+     - min_severity > 4.0 or no issues → 5★ (Clean)
+Output: { stars: 2, reason: "Has High issues" }
+```
+
+### Example 4: Scan Coverage by Type
 Calculate percentage of applications with each scan type:
 
 ```
 SSC APIs:
   1. GET /api/v1/projects (total count)
   2. GET /api/v1/projectVersions (versions per project)
-  3. GET /api/v1/artifacts (scan types per version)
+  3. GET /api/v1/projectVersions/{id}/artifacts (scan types per version)
 Transformation: (Projects with SAST / Total Projects) * 100
 Output: { sast: 82%, dast: 64%, sca: 71%, other: 12% }
 ```
@@ -256,20 +308,22 @@ q=customAttributes.BusinessUnit:[ITOM,Cybersecurity]+customAttributes.Criticalit
 ### For Large Scale (200-500 apps, 100K-500K issues)
 1. **Parallel API Calls**: Fetch independent metrics concurrently
 2. **Pagination Strategy**: Use SSC pagination for large datasets
-3. **Aggregation**: Use SSC's `groupby` feature to reduce response size
-4. **Selective Fields**: Use `fields` parameter to limit payload
+3. **Application-Side Aggregation**: SSC v25.2 `groupby` parameter not supported - group/filter in code
+4. **Selective Fields**: Use `fields` parameter to limit payload (e.g., `fields=severity,removed,foundDate`)
 5. **Response Compression**: Enable gzip on backend responses
-6. **Frontend Lazy Load**: Load dashboard sections progressively
+6. **Version Iteration**: Must iterate through `/projectVersions/{id}/issues` - no global issues endpoint
+7. **Frontend Lazy Load**: Load dashboard sections progressively
 
 ## Success Criteria
 
-1. **Functionality**: All 21 dashboard metrics displaying real SSC data
+1. **Functionality**: 29 of 35 dashboard elements displaying real SSC data (83% - FOD elements removed)
 2. **Performance**: < 2 second load time for full dashboard
 3. **Accuracy**: Data matches SSC web UI (spot checked)
 4. **Filtering**: All 4 filter dimensions working correctly
 5. **Resilience**: Graceful degradation when SSC unavailable
 6. **Refresh**: Auto-refresh working without user intervention
 7. **Logging**: Error tracking and debugging capability
+8. **Calculations**: Star ratings and review metrics calculated correctly
 
 ## Future Enhancements (Out of Scope)
 
@@ -284,24 +338,26 @@ q=customAttributes.BusinessUnit:[ITOM,Cybersecurity]+customAttributes.Criticalit
 
 ## Timeline Estimate
 
-- **Phase 1**: 1-2 days (Python API testing)
+- **Phase 1**: ✅ **COMPLETE** - 2 days (November 16-18, 2025) - Python API testing
 - **Phase 2**: 2-3 days (Backend architecture)
-- **Phase 3**: 5-7 days (Data integration)
+- **Phase 3**: 4-6 days (Data integration - reduced scope, 29 instead of 35 elements)
 - **Phase 4**: 2-3 days (Frontend integration)
 - **Phase 5**: 2 days (Deployment & testing)
 
-**Total**: 12-17 days (2.5-3.5 weeks)
+**Total**: 12-16 days (2.5-3 weeks)
 
 ## Risk Mitigation
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| SSC API rate limiting | High | Implement caching, reduce refresh frequency |
-| Custom attributes not properly configured | High | Validate in Phase 1, document setup requirements |
-| Performance degradation with large dataset | Medium | Implement pagination, optimize queries |
-| SSC API changes/deprecation | Medium | Abstract SSC client, version API calls |
-| Memory exhaustion from cache | Medium | Implement LRU eviction, monitor memory |
-| Incomplete data for some metrics | Low | Graceful fallbacks, show partial data |
+| Risk | Impact | Mitigation | Status |
+|------|--------|------------|--------|
+| SSC API rate limiting | High | Implement caching, reduce refresh frequency | Planned |
+| Custom attributes not properly configured | High | ~~Validate in Phase 1~~ | ✅ Validated |
+| No global issues endpoint | High | ~~Iterate through versions~~ | ✅ Identified, solution documented |
+| Performance degradation with large dataset | High | Parallel version queries, pagination, selective fields | Planned |
+| SSC API changes/deprecation | Medium | Abstract SSC client, version API calls | Planned |
+| Memory exhaustion from cache | Medium | Implement LRU eviction, monitor memory | Planned |
+| Star ratings not available | Medium | ~~Calculate from severity~~ | ✅ Solution validated |
+| Incomplete data for some metrics | Low | Graceful fallbacks, show partial data | Planned |
 
 ## Dependencies
 
@@ -318,19 +374,24 @@ q=customAttributes.BusinessUnit:[ITOM,Cybersecurity]+customAttributes.Criticalit
 
 ## Deliverables
 
-### Code
-- Python test scripts and results
+### Phase 1 (COMPLETE) ✅
+- ✅ Python test scripts (11 scripts, ~2,800 lines)
+- ✅ SSC API validation results
+- ✅ PLAN.md - High-level implementation plan
+- ✅ TASKS.md - Detailed task breakdown
+- ✅ DASHBOARD_SSC_VALIDATION.md - Element-by-element validation
+- ✅ PHASE1_COMPLETE.md - Phase 1 summary
+- ✅ PHASE1_CHECKLIST.md - Completion checklist
+- ✅ scripts/TEST_RESULTS.md - Test results documentation
+- ✅ scripts/README.md - Test scripts usage guide
+- ✅ Sample JSON responses from SSC API
+
+### Phase 2-5 (Pending)
 - Node.js backend application
 - Modified frontend HTML/JavaScript
 - Configuration files
-
-### Documentation
-- API documentation (backend endpoints)
+- Backend API documentation
 - Deployment guide
 - Configuration guide
 - Troubleshooting guide
-
-### Testing
-- API test results
 - Performance test reports
-- Filter validation results

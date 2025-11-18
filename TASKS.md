@@ -1,96 +1,120 @@
 # ASPM Dashboard - Detailed Task Breakdown
 
-## Phase 1: SSC API Validation with Python Scripts
+**Status:** Phase 1 COMPLETE ✅ | Phase 2-5 Pending
 
-### Task 1.1: Setup Python Testing Environment
-- [ ] Create `scripts/` directory
-- [ ] Create `requirements.txt` with dependencies (requests, python-dotenv, tabulate)
-- [ ] Create `.env` file with SSC credentials (from Fortify-ssc-credentials.txt)
-- [ ] Install dependencies: `pip install -r requirements.txt`
+## Phase 1: SSC API Validation with Python Scripts ✅ **COMPLETE**
 
-### Task 1.2: Create Base SSC API Client
-- [ ] Create `scripts/ssc_api_client.py`
-- [ ] Implement authentication with FortifyToken header
-- [ ] Implement base GET request function with error handling
-- [ ] Test connection to SSC base URL
-- [ ] Verify authentication works
+**Completion Date:** November 18, 2025
+**Duration:** 2 days
+**Scripts Created:** 11
+**Documentation:** 8 files
 
-### Task 1.3: Test Core Project/Version Endpoints
-- [ ] Test `GET /api/v1/projects`
+### Task 1.1: Setup Python Testing Environment ✅
+- [x] Create `scripts/` directory
+- [x] Create `requirements.txt` with dependencies (requests, python-dotenv, tabulate)
+- [x] Create `.env` file with SSC credentials (from Fortify-ssc-credentials.txt)
+- [x] Install dependencies: `pip install -r requirements.txt`
+
+### Task 1.2: Create Base SSC API Client ✅
+- [x] Create `scripts/ssc_api_client.py`
+- [x] Implement authentication with FortifyToken header
+- [x] Implement base GET request function with error handling
+- [x] Test connection to SSC base URL
+- [x] Verify authentication works
+- [x] Fix Windows console encoding for emoji support
+
+### Task 1.3: Test Core Project/Version Endpoints ✅
+- [x] Test `GET /api/v1/projects`
   - Document response structure
   - Check pagination limits
   - Save sample JSON to `scripts/samples/projects.json`
-- [ ] Test `GET /api/v1/projectVersions`
+- [x] Test `GET /api/v1/projectVersions`
   - Test with `embed=performanceIndicators,variables`
   - Test with custom field selection
   - Check for custom attributes (Business Unit, Criticality, App Type, SDLC)
   - Save sample to `scripts/samples/projectVersions.json`
-- [ ] Test filtering by custom attributes
+- [x] Test filtering by custom attributes
   - Filter by Business Unit
   - Filter by Criticality
   - Filter by SDLC Status
   - Confirm query syntax works
 
-### Task 1.4: Test Issue/Vulnerability Endpoints
-- [ ] Test `GET /api/v1/issues`
-  - Test with `q=removed:false` (open issues)
-  - Test with `groupby=severity`
-  - Test with date range filters
+### Task 1.4: Test Issue/Vulnerability Endpoints ✅
+- [x] ~~Test `GET /api/v1/issues`~~ ❌ **DOES NOT EXIST in SSC v25.2**
+  - Endpoint returns 404 error
+  - Must use `/projectVersions/{id}/issues` instead
+- [x] Test `GET /api/v1/projectVersions/{id}/issues` ✅ **CORRECT ENDPOINT**
+  - **CRITICAL FINDING:** `removed` modifier NOT supported
+  - Cannot use `q=removed:false` (returns 400 error)
+  - Cannot use `groupby=severity` (not supported)
+  - Must filter and group in application code
+  - Test with `fields=severity,scanStatus,removed,foundDate`
   - Save sample to `scripts/samples/issues.json`
-- [ ] Test `GET /api/v1/projectVersions/{id}/issues`
-  - Test severity grouping
-  - Test scan type filtering
-  - Test production tag filtering
-- [ ] Verify issue count accuracy vs SSC UI
+- [x] Verify issue count accuracy vs SSC UI
+- [x] Validate numeric severity scale (1.0-5.0)
 
-### Task 1.5: Test Artifact/Scan Endpoints
-- [ ] Test `GET /api/v1/artifacts`
-  - Check scan type field
-  - Check upload date
-  - Save sample to `scripts/samples/artifacts.json`
-- [ ] Test `GET /api/v1/projectVersions/{id}/artifacts`
-  - Verify embedded scan data
+### Task 1.5: Test Artifact/Scan Endpoints ✅
+- [x] Test `GET /api/v1/projectVersions/{id}/artifacts`
+  - Verify embedded scan data with `embed=scans`
   - Check LOC (lines of code) field
   - Check file count field
   - Identify SAST/DAST/SCA differentiation
+  - Save sample to `scripts/samples/artifacts.json`
 
-### Task 1.6: Test Performance Indicator Endpoints
-- [ ] Test `GET /api/v1/projectVersions/{id}/performanceIndicatorHistories`
+### Task 1.6: Test Performance Indicator Endpoints ✅
+- [x] Test `GET /api/v1/projectVersions?embed=performanceIndicators`
   - Identify FortifySecurityRating field
   - Test value range (1.0 to 5.0)
   - Map to compliance status
   - Save sample to `scripts/samples/performanceIndicators.json`
-- [ ] Document transformation logic for compliance
+- [x] Document transformation logic for compliance
 
-### Task 1.7: Test Additional Endpoints
-- [ ] Test user/persona endpoints
-- [ ] Test entitlement/license endpoints (if available)
-- [ ] Test ScanCentral endpoints (if available)
-- [ ] Document any missing/unavailable endpoints
+### Task 1.7: Test Additional Endpoints ✅
+- [x] Test user endpoints - `GET /localUsers` (not /authEntities)
+- [x] Test dependency scan endpoints - `GET /projectVersions/{id}/dependencyScanIssues`
+- [x] Test ScanCentral endpoints - `GET /cloudpools` and `/cloudpools/{id}/workers`
+- [x] Document missing/unavailable endpoints (entitlements = FOD only)
 
-### Task 1.8: Create Data Transformation Examples
-- [ ] Create `scripts/transformations.py`
-- [ ] Implement policy compliance transformation
-- [ ] Implement severity distribution aggregation
-- [ ] Implement scan coverage calculation
-- [ ] Implement MTTR calculation example
-- [ ] Test transformations with sample data
+### Task 1.8: Create Data Transformation Examples ✅
+- [x] Create `scripts/transformations.py`
+- [x] Implement policy compliance transformation
+- [x] Implement severity distribution aggregation
+- [x] Implement scan coverage calculation
+- [x] Implement MTTR calculation example
+- [x] Test transformations with sample data
 
-### Task 1.9: Create Comprehensive Test Script
-- [ ] Create `scripts/test_all_endpoints.py`
-- [ ] Test all required endpoints sequentially
-- [ ] Generate summary report
-- [ ] Save all samples to `scripts/samples/`
-- [ ] Output success/failure for each endpoint
+### Task 1.9: Create Comprehensive Test Scripts ✅
+- [x] Create `scripts/test_all_endpoints.py`
+- [x] Create `scripts/test_projects_versions.py`
+- [x] Create `scripts/test_artifacts_scans.py`
+- [x] Test all required endpoints sequentially
+- [x] Generate summary report
+- [x] Save all samples to `scripts/samples/`
 
-### Task 1.10: Document Findings
-- [ ] Create `scripts/TEST_RESULTS.md`
-- [ ] Document all working endpoints with examples
-- [ ] Document required query parameters
-- [ ] Document response field mappings
-- [ ] Document any limitations or issues
-- [ ] Document transformation logic for each metric
-- [ ] Create endpoint-to-metric mapping table
+### Task 1.10: Create Validation Scripts for Uncertain Fields ✅
+- [x] Create `scripts/test_star_ratings.py` - Validate star rating field location
+- [x] Create `scripts/test_review_status.py` - Validate review status fields
+- [x] Create `scripts/test_production_filtering.py` - Validate production filtering methods
+- [x] Create `scripts/test_recurrence_tracking.py` - Validate recurrence tracking
+- [x] Create `scripts/test_corrected_endpoints.py` - Validate corrected approach
+- [x] **KEY FINDINGS:**
+  - ⭐ Star ratings NOT in SSC - calculate from severity
+  - ✅ Review status via `scanStatus` field
+  - ⚠️ No `removed` modifier support
+  - ❌ No global `/issues` endpoint
+
+### Task 1.11: Document Findings ✅
+- [x] Create `scripts/TEST_RESULTS.md`
+- [x] Create `DASHBOARD_SSC_VALIDATION.md` - Element-by-element validation
+- [x] Create `PHASE1_COMPLETE.md` - Complete Phase 1 summary
+- [x] Create `PHASE1_CHECKLIST.md` - Completion checklist
+- [x] Create `scripts/README.md` - Test scripts usage guide
+- [x] Document all working endpoints with examples
+- [x] Document required query parameters and limitations
+- [x] Document response field mappings
+- [x] Document transformation logic for each metric
+- [x] Create endpoint-to-metric mapping table
+- [x] **RESULT:** 29/35 dashboard elements (83%) implementable
 
 ---
 
@@ -196,10 +220,10 @@
 - [ ] Implement `/api/program/kpis` route
 - [ ] Fetch projects count from `/api/v1/projects`
 - [ ] Fetch versions count from `/api/v1/projectVersions`
-- [ ] Fetch users count from `/api/v1/users`
-- [ ] Aggregate LOC from artifacts
+- [ ] Fetch users count from `/api/v1/localUsers` (NOT /users or /authEntities)
+- [ ] Aggregate LOC from artifacts with `embed=scans`
 - [ ] Aggregate file counts from artifacts
-- [ ] Count OSS components from SCA issues
+- [ ] Count OSS components from `/projectVersions/{id}/dependencyScanIssues?engineType=SONATYPE`
 - [ ] Apply filters to all queries
 - [ ] Implement caching
 - [ ] Test endpoint with/without filters
@@ -227,14 +251,11 @@
 - [ ] Implement caching
 - [ ] Test with different date ranges
 
-### Task 3.4: Entitlements Endpoint
-- [ ] Implement `/api/program/entitlements` route
-- [ ] Fetch license/entitlement data
-- [ ] Calculate consumed vs purchased
-- [ ] Calculate percentage used
-- [ ] Format response
-- [ ] Implement caching
-- [ ] Test endpoint
+### Task 3.4: ~~Entitlements Endpoint~~ ❌ **REMOVED - FOD ONLY**
+- ~~Implement `/api/program/entitlements` route~~
+- **Reason:** Entitlements table is a Fortify on Demand (FOD) feature
+- **Not available in SSC:** License endpoints exist but no consumption metrics
+- **Action:** Remove this element from frontend dashboard
 
 ### Task 3.5: Technology Stack Endpoint
 - [ ] Implement `/api/program/technology-stack` route
@@ -273,23 +294,31 @@
 
 ### Task 3.8: Star Ratings Endpoint
 - [ ] Implement `/api/risk/star-ratings` route
-- [ ] Fetch project versions with star ratings
-- [ ] Group by rating (0-5 stars)
-- [ ] Count versions per rating
-- [ ] Calculate percentages
-- [ ] Apply filters
-- [ ] Implement caching
-- [ ] Test distribution calculations
+- [ ] **CRITICAL:** Star ratings NOT stored in SSC - must calculate
+- [ ] Iterate through all project versions
+- [ ] For each version, fetch issues: `/projectVersions/{id}/issues?fields=severity`
+- [ ] Calculate star rating from minimum severity:
+  - min_severity ≤ 1.0 → 1★ (Has Critical)
+  - min_severity ≤ 2.0 → 2★ (Has High)
+  - min_severity ≤ 3.0 → 3★ (Has Medium)
+  - min_severity ≤ 4.0 → 4★ (Has Low)
+  - min_severity > 4.0 or no issues → 5★ (Clean)
+- [ ] Apply filters to version list
+- [ ] Implement caching (expensive calculation)
+- [ ] Test star rating distribution accuracy
 
 ### Task 3.9: Open Issues Endpoint
 - [ ] Implement `/api/risk/open-issues` route
-- [ ] Fetch all open issues grouped by severity
-- [ ] Fetch production-only issues (filter by tag/attribute)
-- [ ] Count by severity for each environment
+- [ ] **CRITICAL:** Must iterate through `/projectVersions/{id}/issues` (no global /issues endpoint)
+- [ ] For each version, fetch issues with `fields=severity,removed`
+- [ ] Filter `removed=false` in application code (NOT in query)
+- [ ] Group by severity (1.0=Critical, 2.0=High, 3.0=Medium, 4.0=Low)
+- [ ] For production issues: filter versions by SDLC Status = "Production" first
+- [ ] Count by severity for each environment (All vs Production)
 - [ ] Format response for both donut and bar charts
-- [ ] Apply filters
-- [ ] Implement caching
-- [ ] Test severity grouping
+- [ ] Apply filters to version list
+- [ ] Implement caching (expensive operation - iterates all versions)
+- [ ] Test severity grouping and counts
 
 ### Task 3.10: Vulnerability Density Endpoint
 - [ ] Implement `/api/risk/density` route
@@ -393,14 +422,16 @@
 
 ### Task 3.19: Review Metrics Endpoint
 - [ ] Implement `/api/remediation/review-metrics` route
-- [ ] Fetch issues with audit/review status
-- [ ] Count reviewed vs total per severity
-- [ ] Calculate review rates
-- [ ] Fetch audit history for review timestamps
-- [ ] Calculate mean time to review
+- [ ] **VALIDATED:** Use `scanStatus` field from issues
+- [ ] Iterate through `/projectVersions/{id}/issues?fields=scanStatus,foundDate,severity`
+- [ ] Count reviewed (scanStatus != 'UNREVIEWED') vs total per severity
+- [ ] Calculate review rates by severity
+- [ ] **Mean Time to Review:** May need audit history for review timestamps
+  - Alternative: Use `lastScanDate` as proxy (less accurate)
+  - Test audit history endpoint first
 - [ ] Apply filters
 - [ ] Implement caching
-- [ ] Test review calculations
+- [ ] Test review rate calculations
 
 ### Task 3.20: Recurrence Endpoint
 - [ ] Implement `/api/remediation/recurrence` route
@@ -447,17 +478,28 @@
 - [ ] Implement last-updated tracking
 - [ ] Create event system for data updates
 
-### Task 4.3: Update Program Dashboard
-- [ ] Modify `aspm_dashboard_otw.html`
+### Task 4.3: Remove FOD-Only Dashboard Elements ❌
+- [ ] Open `aspm_dashboard.html` for editing
+- [ ] **Remove from Program Dashboard:**
+  - [ ] Entitlements Table (FOD-only feature - no SSC equivalent)
+- [ ] **Remove from Remediation Dashboard:**
+  - [ ] SAST Aviator Adoption Rate card/chart (FOD AI feature)
+  - [ ] SAST Aviator ROI card/chart (FOD AI feature)
+- [ ] Update layout to fill gaps left by removed elements
+- [ ] Test dashboard layout after removal
+- [ ] **Result:** Dashboard now has 29 elements instead of 35 (83% implementable)
+
+### Task 4.4: Update Program Dashboard
+- [ ] Modify `aspm_dashboard.html` (Program Dashboard section)
 - [ ] Replace mock KPI data with API calls
 - [ ] Update coverage metrics with real data
 - [ ] Update scan activity chart with API data
-- [ ] Update entitlements table with API data
+- [ ] ~~Update entitlements table~~ ❌ **REMOVED** (see Task 4.3)
 - [ ] Update technology stack treemap with API data
 - [ ] Update ScanCentral charts with API data
 - [ ] Test all visualizations with real data
 
-### Task 4.4: Update Risk Exposure Dashboard
+### Task 4.5: Update Risk Exposure Dashboard
 - [ ] Replace compliance donut chart data
 - [ ] Update star ratings chart data
 - [ ] Update open issues charts (donut + bar)
@@ -468,16 +510,17 @@
 - [ ] Update open source risk charts (security + license)
 - [ ] Test all visualizations
 
-### Task 4.5: Update Remediation Dashboard
+### Task 4.6: Update Remediation Dashboard
 - [ ] Replace remediation rates charts
 - [ ] Update MTTR metrics
 - [ ] Update remediation trend chart
-- [ ] Update review metrics charts
+- [ ] Update review metrics charts (using `scanStatus` field)
 - [ ] Update recurrence donut chart
 - [ ] Update most reopened vulnerabilities table
+- [ ] ~~Update SAST Aviator elements~~ ❌ **REMOVED** (see Task 4.3)
 - [ ] Test all visualizations
 
-### Task 4.6: Implement Filter Functionality
+### Task 4.7: Implement Filter Functionality
 - [ ] Connect filter UI to dashboard.js
 - [ ] Implement applyFilters() function
   - Collect selected filter values
@@ -489,7 +532,7 @@
 - [ ] Test filter clearing
 - [ ] Test filter combinations
 
-### Task 4.7: Implement Auto-Refresh
+### Task 4.8: Implement Auto-Refresh
 - [ ] Create refresh timer (5-15 min configurable)
 - [ ] Implement silent background refresh
 - [ ] Update last-updated timestamp on each refresh
@@ -498,7 +541,7 @@
 - [ ] Test auto-refresh behavior
 - [ ] Add manual refresh button
 
-### Task 4.8: Implement Loading States
+### Task 4.9: Implement Loading States
 - [ ] Create loading overlay/spinner component
 - [ ] Show loading on initial page load
 - [ ] Show loading during filter changes
@@ -506,7 +549,7 @@
 - [ ] Disable interactions during loading
 - [ ] Test loading states
 
-### Task 4.9: Implement Error Handling
+### Task 4.10: Implement Error Handling
 - [ ] Create error banner component
 - [ ] Show stale data warning when SSC unavailable
 - [ ] Display last successful update time
@@ -515,7 +558,7 @@
 - [ ] Test error scenarios
 - [ ] Test recovery from errors
 
-### Task 4.10: Add Timestamp Display
+### Task 4.11: Add Timestamp Display
 - [ ] Add "Last updated" display in header
 - [ ] Format timestamp user-friendly
 - [ ] Update on each refresh
