@@ -1,0 +1,27 @@
+# Credentials and sensitive files
+Fortify-ssc-credentials.txt
+*.credentials
+*.credentials.*
+
+# API keys and tokens
+*.key
+*.token
+*.pem
+.env
+.env.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+CLAUDE.md
