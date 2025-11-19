@@ -170,8 +170,9 @@ router.get('/recurrence', async (req, res, next) => {
       });
     }
 
-    const data = transformer.transformRecurrence({});
-    cache.set(cacheKey, data, cache.getTTLForType('kpis'));
+    // Fetch real data from SSC (expensive operation - 279 versions)
+    const data = await transformer.transformRecurrence(sscClient, req.query);
+    cache.set(cacheKey, data, cache.getTTLForType('expensive'));
 
     res.json({
       data,

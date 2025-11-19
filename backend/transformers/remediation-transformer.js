@@ -237,13 +237,39 @@ exports.transformReviewMetrics = async (sscClient, filters) => {
 
 /**
  * Transform recurrence data
- * @param {object} data - Raw SSC data
- * @returns {object} - Transformed recurrence metrics
+ * @param {object} sscClient - SSC API client
+ * @param {object} filters - Filter parameters
+ * @returns {Promise<object>} - Transformed recurrence metrics
  */
-exports.transformRecurrence = (data) => {
-  // STUB - Phase 3 will implement actual transformation
-  return {
-    recurrenceRate: 0,
-    totalRecurrences: 0
-  };
+exports.transformRecurrence = async (sscClient, filters) => {
+  try {
+    logger.info('Fetching recurrence data', { filters });
+
+    // Fetch all issues with hasCorrelatedIssues field (Phase 1 validated field)
+    const { fetchAllIssues, filterOpenIssues } = require('../services/data-aggregator');
+
+    const allIssues = await fetchAllIssues(sscClient, filters, 'severity,removed,hasCorrelatedIssues');
+    const openIssues = filterOpenIssues(allIssues);
+
+    // Count issues with recurrence (hasCorrelatedIssues = true)
+    const recurrentIssues = openIssues.filter(issue => issue.hasCorrelatedIssues === true);
+
+    const recurrenceRate = openIssues.length > 0
+      ? Math.round((recurrentIssues.length / openIssues.length) * 1000) / 10
+      : 0;
+
+    logger.info('Recurrence calculated', {
+      totalRecurrences: recurrentIssues.length,
+      totalIssues: openIssues.length,
+      recurrenceRate
+    });
+
+    return {
+      recurrenceRate,
+      totalRecurrences: recurrentIssues.length
+    };
+  } catch (error) {
+    logger.error('Error transforming recurrence', { error: error.message });
+    throw error;
+  }
 };

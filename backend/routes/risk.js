@@ -135,8 +135,9 @@ router.get('/density', async (req, res, next) => {
       });
     }
 
-    const data = transformer.transformDensity({});
-    cache.set(cacheKey, data, cache.getTTLForType('kpis'));
+    // Fetch real data from SSC (expensive operation - 279 versions)
+    const data = await transformer.transformDensity(sscClient, req.query);
+    cache.set(cacheKey, data, cache.getTTLForType('expensive'));
 
     res.json({
       data,
@@ -204,8 +205,9 @@ router.get('/prevalent', async (req, res, next) => {
       });
     }
 
-    const data = transformer.transformPrevalent({});
-    cache.set(cacheKey, data, cache.getTTLForType('kpis'));
+    // Fetch real data from SSC (expensive operation - 279 versions)
+    const data = await transformer.transformPrevalent(sscClient, req.query);
+    cache.set(cacheKey, data, cache.getTTLForType('expensive'));
 
     res.json({
       data,
@@ -238,8 +240,9 @@ router.get('/aging-matrix', async (req, res, next) => {
       });
     }
 
-    const data = transformer.transformAgingMatrix({});
-    cache.set(cacheKey, data, cache.getTTLForType('kpis'));
+    // Fetch real data from SSC (expensive operation - 279 versions)
+    const data = await transformer.transformAgingMatrix(sscClient, req.query);
+    cache.set(cacheKey, data, cache.getTTLForType('expensive'));
 
     res.json({
       data,
@@ -272,8 +275,9 @@ router.get('/opensource-security', async (req, res, next) => {
       });
     }
 
-    const data = transformer.transformOpenSourceSecurity({});
-    cache.set(cacheKey, data, cache.getTTLForType('kpis'));
+    // Fetch real data from SSC (expensive operation - 279 versions)
+    const data = await transformer.transformOpenSourceSecurity(sscClient, req.query);
+    cache.set(cacheKey, data, cache.getTTLForType('expensive'));
 
     res.json({
       data,
@@ -306,8 +310,9 @@ router.get('/opensource-licenses', async (req, res, next) => {
       });
     }
 
-    const data = transformer.transformOpenSourceLicenses({});
-    cache.set(cacheKey, data, cache.getTTLForType('kpis'));
+    // Fetch real data from SSC (expensive operation - 279 versions)
+    const data = await transformer.transformOpenSourceLicenses(sscClient, req.query);
+    cache.set(cacheKey, data, cache.getTTLForType('expensive'));
 
     res.json({
       data,

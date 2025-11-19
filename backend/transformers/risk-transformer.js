@@ -184,16 +184,75 @@ exports.transformOpenIssues = async (sscClient, filters) => {
 
 /**
  * Transform vulnerability density data
- * @param {object} data - Raw SSC data
- * @returns {object} - Transformed density metrics
+ * @param {object} sscClient - SSC API client
+ * @param {object} filters - Filter parameters
+ * @returns {Promise<object>} - Transformed density metrics
  */
-exports.transformDensity = (data) => {
-  // STUB - Phase 3 will implement actual transformation
-  return {
-    issuesPerKLOC: 0,
-    totalIssues: 0,
-    totalKLOC: 0
-  };
+exports.transformDensity = async (sscClient, filters) => {
+  try {
+    logger.info('Fetching density data', { filters });
+
+    // Fetch all open issues for total count
+    const allIssues = await fetchAllIssues(sscClient, filters, 'severity,removed');
+    const openIssues = filterOpenIssues(allIssues);
+
+    // Fetch LOC from artifacts (same as scan metrics)
+    const { buildFilterQuery, chunkArray } = require('../services/data-aggregator');
+    const sscConfig = require('../config/ssc-config');
+
+    const filterQuery = buildFilterQuery(filters);
+    const versions = await sscClient.getWithPagination('/projectVersions', {
+      q: filterQuery
+    });
+
+    let totalLOC = 0;
+    const chunks = chunkArray(versions, sscConfig.maxConcurrentRequests);
+
+    for (const chunk of chunks) {
+      const promises = chunk.map(async (version) => {
+        try {
+          const response = await sscClient.get(`/projectVersions/${version.id}/artifacts`, {
+            limit: 1000
+          });
+          const artifacts = response.data || [];
+
+          artifacts.forEach(artifact => {
+            if (artifact.linesOfCode) {
+              totalLOC += artifact.linesOfCode;
+            }
+          });
+        } catch (error) {
+          logger.warn('Failed to fetch artifacts for version', {
+            versionId: version.id,
+            error: error.message
+          });
+        }
+      });
+
+      await Promise.all(promises);
+    }
+
+    const totalKLOC = totalLOC / 1000;
+    const issuesPerKLOC = totalKLOC > 0
+      ? Math.round((openIssues.length / totalKLOC) * 10) / 10
+      : 0;
+
+    logger.info('Density calculated', {
+      totalIssues: openIssues.length,
+      totalLOC,
+      totalKLOC: Math.round(totalKLOC * 10) / 10,
+      issuesPerKLOC
+    });
+
+    return {
+      issuesPerKLOC,
+      totalIssues: openIssues.length,
+      totalKLOC: Math.round(totalKLOC * 10) / 10
+    };
+  } catch (error) {
+    logger.error('Error transforming density', { error: error.message });
+    throw error;
+  }
 };
 
 /**
@@ -264,55 +323,264 @@ exports.transformDetectionTrend = async (sscClient, filters) => {
 
 /**
  * Transform prevalent vulnerabilities data
- * @param {object} data - Raw SSC data
- * @returns {Array} - Top prevalent vulnerability types
+ * @param {object} sscClient - SSC API client
+ * @param {object} filters - Filter parameters
+ * @returns {Promise<Array>} - Top prevalent vulnerability types
  */
-exports.transformPrevalent = (data) => {
-  // STUB - Phase 3 will implement actual transformation
-  return [];
+exports.transformPrevalent = async (sscClient, filters) => {
+  try {
+    logger.info('Fetching prevalent vulnerabilities', { filters });
+
+    // Fetch all open issues with issueName field
+    const allIssues = await fetchAllIssues(sscClient, filters, 'severity,removed,issueName,friority');
+    const openIssues = filterOpenIssues(allIssues);
+
+    // Group by issue name and count occurrences
+    const issueGroups = {};
+
+    openIssues.forEach(issue => {
+      const name = issue.issueName || issue.friority || 'Unknown';
+
+      if (!issueGroups[name]) {
+        issueGroups[name] = {
+          name,
+          count: 0,
+          severity: issue.severity || 5.0
+        };
+      }
+
+      issueGroups[name].count++;
+
+      // Use highest severity (lowest number) for this issue type
+      if (issue.severity && issue.severity < issueGroups[name].severity) {
+        issueGroups[name].severity = issue.severity;
+      }
+    });
+
+    // Convert to array, sort by count, and take top 10
+    const sortedIssues = Object.values(issueGroups)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10)
+      .map(issue => ({
+        name: issue.name,
+        count: issue.count,
+        severity: issue.severity,
+        percentage: Math.round((issue.count / openIssues.length) * 1000) / 10
+      }));
+
+    logger.info('Prevalent vulnerabilities calculated', {
+      totalIssueTypes: Object.keys(issueGroups).length,
+      topIssues: sortedIssues.length
+    });
+
+    return sortedIssues;
+  } catch (error) {
+    logger.error('Error transforming prevalent vulnerabilities', { error: error.message });
+    throw error;
+  }
 };
 
 /**
  * Transform aging matrix data
- * @param {object} data - Raw SSC data
- * @returns {object} - Transformed aging distribution
+ * @param {object} sscClient - SSC API client
+ * @param {object} filters - Filter parameters
+ * @returns {Promise<object>} - Transformed aging distribution
  */
-exports.transformAgingMatrix = (data) => {
-  // STUB - Phase 3 will implement actual transformation
-  return {
-    under30Days: 0,
-    days30to90: 0,
-    days90to180: 0,
-    over180Days: 0
-  };
+exports.transformAgingMatrix = async (sscClient, filters) => {
+  try {
+    logger.info('Fetching aging matrix data', { filters });
+
+    // Fetch all open issues with foundDate
+    const allIssues = await fetchAllIssues(sscClient, filters, 'severity,removed,foundDate');
+    const openIssues = filterOpenIssues(allIssues);
+
+    // Calculate age distribution
+    const now = new Date();
+    const aging = {
+      under30Days: 0,
+      days30to90: 0,
+      days90to180: 0,
+      over180Days: 0
+    };
+
+    openIssues.forEach(issue => {
+      if (!issue.foundDate) return;
+
+      const foundDate = new Date(issue.foundDate);
+      const ageInDays = (now - foundDate) / (1000 * 60 * 60 * 24);
+
+      if (ageInDays < 30) {
+        aging.under30Days++;
+      } else if (ageInDays < 90) {
+        aging.days30to90++;
+      } else if (ageInDays < 180) {
+        aging.days90to180++;
+      } else {
+        aging.over180Days++;
+      }
+    });
+
+    logger.info('Aging matrix calculated', {
+      totalIssues: openIssues.length,
+      distribution: aging
+    });
+
+    return aging;
+  } catch (error) {
+    logger.error('Error transforming aging matrix', { error: error.message });
+    throw error;
+  }
 };
 
 /**
  * Transform open source security data
- * @param {object} data - Raw SSC data
- * @returns {object} - Transformed open source metrics
+ * @param {object} sscClient - SSC API client
+ * @param {object} filters - Filter parameters
+ * @returns {Promise<object>} - Transformed open source metrics
  */
-exports.transformOpenSourceSecurity = (data) => {
-  // STUB - Phase 3 will implement actual transformation
-  return {
-    components: 0,
-    vulnerabilities: 0,
-    critical: 0,
-    high: 0
-  };
+exports.transformOpenSourceSecurity = async (sscClient, filters) => {
+  try {
+    logger.info('Fetching open source security data', { filters });
+
+    // Fetch dependency scan issues using correct Phase 1 endpoint
+    // /api/v1/projectVersions/{id}/dependencyScanIssues?engineType=SONATYPE
+    const { buildFilterQuery, chunkArray } = require('../services/data-aggregator');
+    const sscConfig = require('../config/ssc-config');
+
+    const filterQuery = buildFilterQuery(filters);
+    const versions = await sscClient.getWithPagination('/projectVersions', {
+      q: filterQuery
+    });
+
+    let allDependencyIssues = [];
+    const chunks = chunkArray(versions, sscConfig.maxConcurrentRequests);
+
+    for (const chunk of chunks) {
+      const promises = chunk.map(async (version) => {
+        try {
+          const response = await sscClient.get(
+            `/projectVersions/${version.id}/dependencyScanIssues`,
+            { engineType: 'SONATYPE', limit: 1000 }
+          );
+          return response.data || [];
+        } catch (error) {
+          logger.warn('Failed to fetch dependency issues for version', {
+            versionId: version.id,
+            error: error.message
+          });
+          return [];
+        }
+      });
+
+      const results = await Promise.all(promises);
+      allDependencyIssues.push(...results.flat());
+    }
+
+    // Count unique components and vulnerabilities
+    const componentSet = new Set();
+    let critical = 0, high = 0;
+
+    allDependencyIssues.forEach(issue => {
+      if (issue.componentName) {
+        componentSet.add(issue.componentName);
+      }
+
+      const severity = issue.severity || 5.0;
+      if (severity <= 1.0) critical++;
+      else if (severity <= 2.0) high++;
+    });
+
+    logger.info('Open source security calculated', {
+      components: componentSet.size,
+      vulnerabilities: allDependencyIssues.length,
+      critical,
+      high
+    });
+
+    return {
+      components: componentSet.size,
+      vulnerabilities: allDependencyIssues.length,
+      critical,
+      high
+    };
+  } catch (error) {
+    logger.error('Error transforming open source security', { error: error.message });
+    throw error;
+  }
 };
 
 /**
  * Transform open source license data
- * @param {object} data - Raw SSC data
- * @returns {object} - Transformed license distribution
+ * @param {object} sscClient - SSC API client
+ * @param {object} filters - Filter parameters
+ * @returns {Promise<object>} - Transformed license distribution
  */
-exports.transformOpenSourceLicenses = (data) => {
-  // STUB - Phase 3 will implement actual transformation
-  return {
-    permissive: 0,
-    copyleft: 0,
-    proprietary: 0,
-    unknown: 0
-  };
+exports.transformOpenSourceLicenses = async (sscClient, filters) => {
+  try {
+    logger.info('Fetching open source license data', { filters });
+
+    // Fetch dependency scan issues with license info
+    const { buildFilterQuery, chunkArray } = require('../services/data-aggregator');
+    const sscConfig = require('../config/ssc-config');
+
+    const filterQuery = buildFilterQuery(filters);
+    const versions = await sscClient.getWithPagination('/projectVersions', {
+      q: filterQuery
+    });
+
+    let allDependencyIssues = [];
+    const chunks = chunkArray(versions, sscConfig.maxConcurrentRequests);
+
+    for (const chunk of chunks) {
+      const promises = chunk.map(async (version) => {
+        try {
+          const response = await sscClient.get(
+            `/projectVersions/${version.id}/dependencyScanIssues`,
+            { engineType: 'SONATYPE', limit: 1000 }
+          );
+          return response.data || [];
+        } catch (error) {
+          logger.warn('Failed to fetch dependency issues for version', {
+            versionId: version.id,
+            error: error.message
+          });
+          return [];
+        }
+      });
+
+      const results = await Promise.all(promises);
+      allDependencyIssues.push(...results.flat());
+    }
+
+    // Classify licenses (simple classification based on common licenses)
+    const licenses = {
+      permissive: 0,    // MIT, Apache, BSD
+      copyleft: 0,      // GPL, LGPL, AGPL
+      proprietary: 0,   // Proprietary, Commercial
+      unknown: 0        // Unknown or no license
+    };
+
+    allDependencyIssues.forEach(issue => {
+      const license = (issue.license || '').toLowerCase();
+
+      if (!license || license === 'unknown') {
+        licenses.unknown++;
+      } else if (license.includes('mit') || license.includes('apache') || license.includes('bsd')) {
+        licenses.permissive++;
+      } else if (license.includes('gpl') || license.includes('lgpl') || license.includes('agpl')) {
+        licenses.copyleft++;
+      } else if (license.includes('proprietary') || license.includes('commercial')) {
+        licenses.proprietary++;
+      } else {
+        licenses.unknown++;
+      }
+    });
+
+    logger.info('Open source licenses calculated', { licenses });
+
+    return licenses;
+  } catch (error) {
+    logger.error('Error transforming open source licenses', { error: error.message });
+    throw error;
+  }
 };
