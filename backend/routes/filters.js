@@ -29,34 +29,39 @@ router.get('/metadata', async (req, res, next) => {
       });
     }
 
-    // STUB - Phase 3 will implement actual SSC custom attribute fetching
-    // Should fetch from: GET /api/v1/attributeDefinitions
+    logger.info('Fetching filter metadata from SSC');
+
+    // Fetch attribute definitions from SSC
+    const attributeDefinitions = await sscClient.getWithPagination('/attributeDefinitions');
+
+    // Find custom attributes we need
+    const businessUnitAttr = attributeDefinitions.find(attr => attr.name === 'Business Unit');
+    const criticalityAttr = attributeDefinitions.find(attr => attr.name === 'Business Criticality');
+    const appTypeAttr = attributeDefinitions.find(attr => attr.name === 'Application Type');
+    const sdlcAttr = attributeDefinitions.find(attr => attr.name === 'SDLC Status');
+
+    // Extract options (values) from each attribute
     const data = {
-      businessUnit: [
-        'Content',
-        'ITOM',
-        'Cybersecurity',
-        'ADM',
-        'Business Networks',
-        'Portfolio'
+      businessUnit: businessUnitAttr?.options?.map(opt => opt.name) || [
+        'Content', 'ITOM', 'Cybersecurity', 'ADM', 'Business Networks', 'Portfolio'
       ],
-      businessCriticality: [
-        'High',
-        'Medium',
-        'Low'
+      businessCriticality: criticalityAttr?.options?.map(opt => opt.name) || [
+        'High', 'Medium', 'Low'
       ],
-      applicationType: [
-        'Mobile',
-        'Web',
-        'API',
-        'Thick Client'
+      applicationType: appTypeAttr?.options?.map(opt => opt.name) || [
+        'Mobile', 'Web', 'API', 'Thick Client'
       ],
-      sdlcStatus: [
-        'Development',
-        'QA/Test',
-        'Production'
+      sdlcStatus: sdlcAttr?.options?.map(opt => opt.name) || [
+        'Development', 'QA/Test', 'Production'
       ]
     };
+
+    logger.info('Filter metadata fetched', {
+      businessUnitOptions: data.businessUnit.length,
+      criticalityOptions: data.businessCriticality.length,
+      appTypeOptions: data.applicationType.length,
+      sdlcOptions: data.sdlcStatus.length
+    });
 
     // Cache metadata for 1 hour (changes infrequently)
     cache.set(cacheKey, data, cache.getTTLForType('metadata'));

@@ -2,13 +2,14 @@
  * Risk Exposure Dashboard Routes
  *
  * 9 endpoints for Risk Dashboard metrics.
- * STUB IMPLEMENTATIONS - Will be filled in Phase 3.
+ * Phase 3 implementation with real SSC data fetching.
  */
 
 const express = require('express');
 const router = express.Router();
 const cache = require('../services/cache-manager');
 const transformer = require('../transformers/risk-transformer');
+const sscClient = require('../services/ssc-client');
 
 /**
  * GET /api/risk/compliance
@@ -29,7 +30,8 @@ router.get('/compliance', async (req, res, next) => {
       });
     }
 
-    const data = transformer.transformCompliance({});
+    // Fetch real data from SSC
+    const data = await transformer.transformCompliance(sscClient, req.query);
     cache.set(cacheKey, data, cache.getTTLForType('kpis'));
 
     res.json({
@@ -63,7 +65,8 @@ router.get('/star-ratings', async (req, res, next) => {
       });
     }
 
-    const data = transformer.transformStarRatings({});
+    // Fetch real data from SSC (expensive operation - 278 versions)
+    const data = await transformer.transformStarRatings(sscClient, req.query);
     cache.set(cacheKey, data, cache.getTTLForType('expensive'));
 
     res.json({
@@ -97,7 +100,8 @@ router.get('/open-issues', async (req, res, next) => {
       });
     }
 
-    const data = transformer.transformOpenIssues({});
+    // Fetch real data from SSC
+    const data = await transformer.transformOpenIssues(sscClient, req.query);
     cache.set(cacheKey, data, cache.getTTLForType('kpis'));
 
     res.json({
@@ -165,7 +169,8 @@ router.get('/detection-trend', async (req, res, next) => {
       });
     }
 
-    const data = transformer.transformDetectionTrend({});
+    // Fetch real data from SSC
+    const data = await transformer.transformDetectionTrend(sscClient, req.query);
     cache.set(cacheKey, data, cache.getTTLForType('trends'));
 
     res.json({

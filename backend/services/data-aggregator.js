@@ -297,10 +297,43 @@ function calculateMTTR(issues) {
   };
 }
 
+/**
+ * Fetch all issues across all filtered versions (HIGH-LEVEL HELPER)
+ *
+ * This is the main function to use for fetching issues.
+ * It handles version fetching + issue aggregation.
+ *
+ * @param {object} sscClient - SSC API client
+ * @param {object} filters - Filter parameters
+ * @param {string} fields - Comma-separated fields to fetch
+ * @returns {Promise<Array>} - All issues
+ */
+async function fetchAllIssues(sscClient, filters, fields = 'severity,removed,scanStatus,foundDate,removedDate') {
+  logger.info('Fetching all issues', { filters });
+
+  // Build filter query
+  const filterQuery = buildFilterQuery(filters);
+
+  // Fetch all versions (with filters applied)
+  const versions = await sscClient.getWithPagination('/projectVersions', {
+    q: filterQuery
+  });
+
+  logger.info('Versions fetched, starting issue aggregation', {
+    versionCount: versions.length
+  });
+
+  // Aggregate issues across all versions
+  const allIssues = await aggregateIssuesAcrossVersions(sscClient, versions, fields);
+
+  return allIssues;
+}
+
 module.exports = {
   parallelFetch,
   chunkArray,
   aggregateIssuesAcrossVersions,
+  fetchAllIssues,
   buildFilterQuery,
   calculateYoYDelta,
   calculateStarRating,

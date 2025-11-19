@@ -9,6 +9,7 @@ const express = require('express');
 const router = express.Router();
 const cache = require('../services/cache-manager');
 const transformer = require('../transformers/remediation-transformer');
+const sscClient = require('../services/ssc-client');
 
 /**
  * GET /api/remediation/rates
@@ -29,7 +30,8 @@ router.get('/rates', async (req, res, next) => {
       });
     }
 
-    const data = transformer.transformRemediationRates({});
+    // Fetch real data from SSC (expensive operation - 278 versions)
+    const data = await transformer.transformRemediationRates(sscClient, req.query);
     cache.set(cacheKey, data, cache.getTTLForType('kpis'));
 
     res.json({
@@ -63,7 +65,8 @@ router.get('/mttr', async (req, res, next) => {
       });
     }
 
-    const data = transformer.transformMTTR({});
+    // Fetch real data from SSC (expensive operation - 278 versions)
+    const data = await transformer.transformMTTR(sscClient, req.query);
     cache.set(cacheKey, data, cache.getTTLForType('kpis'));
 
     res.json({
@@ -97,7 +100,8 @@ router.get('/trend', async (req, res, next) => {
       });
     }
 
-    const data = transformer.transformRemediationTrend({});
+    // Fetch real data from SSC (expensive operation - 278 versions)
+    const data = await transformer.transformRemediationTrend(sscClient, req.query);
     cache.set(cacheKey, data, cache.getTTLForType('trends'));
 
     res.json({
@@ -131,7 +135,8 @@ router.get('/review-metrics', async (req, res, next) => {
       });
     }
 
-    const data = transformer.transformReviewMetrics({});
+    // Fetch real data from SSC (expensive operation - 278 versions)
+    const data = await transformer.transformReviewMetrics(sscClient, req.query);
     cache.set(cacheKey, data, cache.getTTLForType('kpis'));
 
     res.json({

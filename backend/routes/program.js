@@ -2,13 +2,14 @@
  * Program Dashboard Routes
  *
  * 6 endpoints for Program Dashboard metrics.
- * STUB IMPLEMENTATIONS - Will be filled in Phase 3.
+ * Phase 3 implementation with real SSC data fetching.
  */
 
 const express = require('express');
 const router = express.Router();
 const cache = require('../services/cache-manager');
 const transformer = require('../transformers/program-transformer');
+const sscClient = require('../services/ssc-client');
 
 /**
  * GET /api/program/kpis
@@ -29,8 +30,8 @@ router.get('/kpis', async (req, res, next) => {
       });
     }
 
-    // STUB - Phase 3 will implement actual data fetching
-    const data = transformer.transformKPIs({});
+    // Fetch real data from SSC
+    const data = await transformer.transformKPIs(sscClient, req.query);
 
     cache.set(cacheKey, data, cache.getTTLForType('kpis'));
 
@@ -65,8 +66,8 @@ router.get('/scan-metrics', async (req, res, next) => {
       });
     }
 
-    // STUB - Phase 3 will implement actual data fetching
-    const data = transformer.transformScanMetrics({});
+    // Fetch real data from SSC (expensive operation - 278 versions)
+    const data = await transformer.transformScanMetrics(sscClient, req.query);
 
     cache.set(cacheKey, data, cache.getTTLForType('kpis'));
 
@@ -101,8 +102,8 @@ router.get('/coverage', async (req, res, next) => {
       });
     }
 
-    // STUB - Phase 3 will implement actual data fetching
-    const data = transformer.transformCoverage({});
+    // Fetch real data from SSC (expensive operation - 278 versions)
+    const data = await transformer.transformCoverage(sscClient, req.query);
 
     cache.set(cacheKey, data, cache.getTTLForType('expensive'));
 
@@ -137,8 +138,8 @@ router.get('/scan-activity', async (req, res, next) => {
       });
     }
 
-    // STUB - Phase 3 will implement actual data fetching
-    const data = transformer.transformScanActivity({});
+    // Fetch real data from SSC (expensive operation - 278 versions)
+    const data = await transformer.transformScanActivity(sscClient, req.query);
 
     cache.set(cacheKey, data, cache.getTTLForType('trends'));
 
@@ -173,8 +174,8 @@ router.get('/technology-stack', async (req, res, next) => {
       });
     }
 
-    // STUB - Phase 3 will implement actual data fetching
-    const data = transformer.transformTechnologyStack({});
+    // Fetch real data from SSC
+    const data = await transformer.transformTechnologyStack(sscClient, req.query);
 
     cache.set(cacheKey, data, cache.getTTLForType('expensive'));
 
@@ -209,8 +210,8 @@ router.get('/scancentral', async (req, res, next) => {
       });
     }
 
-    // STUB - Phase 3 will implement actual data fetching
-    const data = transformer.transformScanCentral({});
+    // Fetch real data from SSC
+    const data = await transformer.transformScanCentral(sscClient, req.query);
 
     cache.set(cacheKey, data, cache.getTTLForType('kpis'));
 

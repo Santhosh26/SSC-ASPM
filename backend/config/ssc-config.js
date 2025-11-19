@@ -20,8 +20,9 @@ module.exports = {
   retryDelay: 1000,
 
   // Concurrency limiting for parallel requests
-  // IMPORTANT: Limit to 5 concurrent requests to avoid overwhelming SSC
-  maxConcurrentRequests: 5,
+  // IMPORTANT: Reduced to 2 due to 504 Gateway Timeout errors at concurrency 5
+  // SSC v25.2.2 staging instance cannot handle 5 concurrent /issues requests
+  maxConcurrentRequests: 2,
 
   // Pagination defaults
   defaultPageSize: 200,
