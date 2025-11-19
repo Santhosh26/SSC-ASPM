@@ -217,6 +217,21 @@ Count unique components
 Aggregate across all versions
 ```
 
+### 5. Year-over-Year Delta Approximation (Creation Date Method)
+```
+GET /projects (or /projectVersions)
+Calculate:
+  current_count = count(all active items)
+  twelve_months_ago_count = count(items where creationDate < now - 12 months)
+  yoy_delta = current_count - twelve_months_ago_count
+  yoy_percentage = (yoy_delta / twelve_months_ago_count) * 100
+
+Example for Applications:
+  Current: 173 applications
+  Created >12mo ago: 150 applications
+  YoY growth: +23 applications (+15.3%)
+```
+
 ---
 
 ## Performance Considerations
@@ -247,10 +262,21 @@ Aggregate across all versions
 - Alternative: Skip this metric or use approximation
 - **Action:** Test audit history in Phase 2
 
-### 3. Year-over-Year Comparisons ⚠️
+### 3. Year-over-Year Comparisons ✅
 - SSC does not store historical snapshots
-- **Solution:** Implement daily/weekly snapshot storage
-- **Action:** Design snapshot strategy in Phase 2
+- **Solution:** Use creation date approximation
+  - Current count: Total active items
+  - 12 months ago estimate: Items where `creationDate < (now - 12 months)`
+  - YoY delta: Current - 12MonthsAgo
+- **Advantages:**
+  - No external storage required
+  - Works immediately without historical data collection
+  - Accurate for growing environments (typical case)
+- **Limitations:**
+  - Shows growth only (doesn't account for deletions)
+  - Not accurate if significant deletions occurred
+- **Applies to:** Applications, Versions (Users if createdDate field exists)
+- **Alternative:** Implement snapshot storage for 100% accuracy (future enhancement)
 
 ---
 

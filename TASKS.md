@@ -219,14 +219,25 @@
 - [ ] Create `backend/transformers/program-transformer.js`
 - [ ] Implement `/api/program/kpis` route
 - [ ] Fetch projects count from `/api/v1/projects`
+  - [ ] Get current count (all active projects)
+  - [ ] Get baseline count (projects where `creationDate < now - 12 months`)
+  - [ ] Calculate YoY delta: current - baseline
+  - [ ] Calculate YoY percentage: (delta / baseline) * 100
 - [ ] Fetch versions count from `/api/v1/projectVersions`
+  - [ ] Get current count (all active versions)
+  - [ ] Get baseline count (versions where `creationDate < now - 12 months`)
+  - [ ] Calculate YoY delta and percentage
 - [ ] Fetch users count from `/api/v1/localUsers` (NOT /users or /authEntities)
+  - [ ] Check if `createdDate` field exists on LocalUser
+  - [ ] If yes, calculate YoY delta using same method
+  - [ ] If no, return YoY delta as null/unavailable
 - [ ] Aggregate LOC from artifacts with `embed=scans`
 - [ ] Aggregate file counts from artifacts
 - [ ] Count OSS components from `/projectVersions/{id}/dependencyScanIssues?engineType=SONATYPE`
 - [ ] Apply filters to all queries
 - [ ] Implement caching
 - [ ] Test endpoint with/without filters
+- [ ] Test YoY delta calculations with sample data
 
 ### Task 3.2: Coverage Metrics Endpoint
 - [ ] Implement `/api/program/coverage` route

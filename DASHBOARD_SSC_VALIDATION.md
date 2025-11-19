@@ -57,13 +57,21 @@ Complete validation of every dashboard element against Fortify SSC API capabilit
 - **Status:** ✅ Available
 - **Endpoint:** `GET /projects`
 - **Fields:** Count of `Project` objects where `active=true`
-- **YoY Delta:** ❌ Not available (requires historical snapshot tracking)
+- **YoY Delta:** 🔄 Approximation available
+  - Current count: All active projects
+  - 12 months ago count: Projects where `creationDate < (now - 12 months)`
+  - YoY delta: Current - 12MonthsAgo
+  - **Note:** Shows growth only (assumes no deletions), but useful approximation
 
 #### 2. Versions/Releases Card
 - **Status:** ✅ Available
 - **Endpoint:** `GET /projectVersions?includeInactive=false`
 - **Fields:** Count of active `ProjectVersion` objects
-- **YoY Delta:** ❌ Not available (requires historical snapshot tracking)
+- **YoY Delta:** 🔄 Approximation available
+  - Current count: All active versions
+  - 12 months ago count: Versions where `creationDate < (now - 12 months)`
+  - YoY delta: Current - 12MonthsAgo
+  - **Note:** Shows growth only, useful approximation
 
 #### 3. Users Card
 - **Status:** ✅ Available
@@ -71,7 +79,10 @@ Complete validation of every dashboard element against Fortify SSC API capabilit
 - **Example:** `https://ssc.stage.cyberresstage.com/api/v1/localUsers?limit=-1&start=0`
 - **Fields:** Count of `LocalUser` objects where `suspended=false`
 - **Note:** This returns local SSC users only (not LDAP users). For all users including LDAP, use `/authEntities`
-- **YoY Delta:** ❌ Not available (no creation date on users)
+- **YoY Delta:** ⚠️ May not be available
+  - **Check if:** `createdDate` or `dateCreated` field exists on LocalUser
+  - **If yes:** Apply same approximation as Applications/Versions
+  - **If no:** YoY delta not available for Users card
 
 #### 4. Lines of Code Scanned Card
 - **Status:** ✅ Available (requires aggregation)

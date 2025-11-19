@@ -213,7 +213,21 @@ Transformation:
 Output: { stars: 2, reason: "Has High issues" }
 ```
 
-### Example 4: Scan Coverage by Type
+### Example 4: Year-over-Year Delta Approximation
+Calculate YoY growth using creation dates (no historical snapshots needed):
+
+```
+SSC API: GET /api/v1/projects (or /projectVersions)
+Transformation:
+  1. Count all active items → current_count
+  2. Count items where creationDate < (now - 12 months) → baseline_count
+  3. Calculate delta: yoy_delta = current_count - baseline_count
+  4. Calculate percentage: yoy_pct = (yoy_delta / baseline_count) * 100
+Note: Shows growth only (assumes no deletions), but accurate for typical use case
+Output: { current: 173, yoy_delta: +23, yoy_percentage: +15.3% }
+```
+
+### Example 5: Scan Coverage by Type
 Calculate percentage of applications with each scan type:
 
 ```
@@ -327,7 +341,8 @@ q=customAttributes.BusinessUnit:[ITOM,Cybersecurity]+customAttributes.Criticalit
 
 ## Future Enhancements (Out of Scope)
 
-- Historical data tracking for YoY comparisons
+- ~~Historical data tracking for YoY comparisons~~ ✅ Solved with creation date approximation
+- Historical snapshot storage for 100% accurate YoY (optional - approximation works for most cases)
 - Database for persistent caching
 - User authentication and authorization
 - Customizable refresh intervals per user

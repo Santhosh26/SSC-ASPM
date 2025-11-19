@@ -74,6 +74,7 @@
 - [x] Review Status (scanStatus → Reviewed/Unreviewed)
 - [x] Open Source Components (dependencyScanIssues → count)
 - [x] MTTR calculation (removedDate - foundDate)
+- [x] Year-over-Year Delta (creation date approximation method)
 
 ---
 
@@ -89,12 +90,13 @@
 - **Star ratings** calculation method confirmed
 - **Review metrics** using scanStatus field confirmed
 - **Production filtering** approach identified
+- **Year-over-Year deltas** approximation method validated
 - **Data transformations** all validated
 
 ### ⚠️ Remaining Uncertainties
 - **Issue Recurrence Rate**: May require audit history analysis
 - **Mean Time to Review**: May need audit history timestamps
-- **Year-over-Year Metrics**: Require snapshot storage implementation
+- ~~**Year-over-Year Metrics**~~: ✅ Solved with creation date approximation
 
 ---
 
